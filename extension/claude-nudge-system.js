@@ -1,6 +1,6 @@
-// claude-nudge-system.js - Claude-based nudging with escalation system
+// prisma-nudge-system.js - Prisma-based nudging with escalation system
 
-class ClaudeNudgeSystem {
+class PrismaNudgeSystem {
   constructor() {
     this.nudgeHistory = [];
     this.interferenceLevel = 0; // 0: no nudges, 1: gentle nudges, 2: stronger hints, 3: full interference
@@ -20,7 +20,7 @@ class ClaudeNudgeSystem {
 
   // Analyze structured batch from Tandem and decide on nudging
   analyzeAndNudge(structuredBatch, apiKey) {
-    console.group('🧠 [Claude Nudge Analysis] Starting Analysis Pipeline');
+    console.group('🧠 [Prisma Nudge Analysis] Starting Analysis Pipeline');
     console.log('📥 Input Batch:', structuredBatch);
     console.log('🔑 API Key Available:', !!apiKey);
     
@@ -273,19 +273,19 @@ class ClaudeNudgeSystem {
     const now = Date.now();
     
     try {
-      const prompt = this.buildClaudePrompt(structuredBatch, analysis);
-      const nudgeText = await this.callClaude(prompt, apiKey);
+      const prompt = this.buildPrismaPrompt(structuredBatch, analysis);
+      const nudgeText = await this.callPrisma(prompt, apiKey);
 
-      // If Claude returns an empty or whitespace-only string, decide on fallback or skip
+      // If Prisma returns an empty or whitespace-only string, decide on fallback or skip
       let cleanedText = (nudgeText || '').trim();
 
       if (!cleanedText) {
         // Provide a simple fallback for problematic scenarios, otherwise skip nudging
         if (analysis.concerningSignals > 0) {
-          console.warn('[Claude Nudge] Empty response detected – using generic fallback');
+          console.warn('[Prisma Nudge] Empty response detected – using generic fallback');
           cleanedText = "Take a closer look at your reasoning and try to identify any assumptions you may have missed.";
         } else {
-          console.log('[Claude Nudge] Empty response and no problems – skipping nudge.');
+          console.log('[Prisma Nudge] Empty response and no problems – skipping nudge.');
           return null;
         }
       }
@@ -307,11 +307,11 @@ class ClaudeNudgeSystem {
         this.nudgeHistory = this.nudgeHistory.slice(-20);
       }
 
-      console.log(`[Claude Nudge] Generated level ${this.interferenceLevel} nudge`);
+      console.log(`[Prisma Nudge] Generated level ${this.interferenceLevel} nudge`);
       return nudge;
 
     } catch (error) {
-      console.error('[Claude Nudge] Error generating nudge:', error);
+      console.error('[Prisma Nudge] Error generating nudge:', error);
       return null;
     }
   }
@@ -379,8 +379,8 @@ class ClaudeNudgeSystem {
     return result;
   }
 
-  // Build prompt for Claude based on interference level and analysis
-  buildClaudePrompt(structuredBatch, analysis) {
+  // Build prompt for Prisma based on interference level and analysis
+  buildPrismaPrompt(structuredBatch, analysis) {
     const { structuredText } = structuredBatch;
     const { interferenceLevel, signalTypes, urgency } = { ...analysis, interferenceLevel: this.interferenceLevel };
 
@@ -464,12 +464,12 @@ Your response (brief direct guidance):`;
     return basePrompt;
   }
 
-  // Call Anthropic Claude API
-  async callClaude(prompt, apiKey) {
+  // Call Anthropic Prisma API
+  async callPrisma(prompt, apiKey) {
     const startTime = Date.now();
     const requestId = `req_${startTime}`;
     
-    console.group(`🤖 [Claude Inference ${requestId}] Starting API Call`);
+    console.group(`🤖 [Prisma Inference ${requestId}] Starting API Call`);
     console.log('📝 Full Prompt Input:', prompt);
     console.log('🔑 API Key Status:', apiKey ? `✅ Present (${apiKey.substring(0, 10)}...)` : '❌ MISSING');
     console.log('⏰ Request Time:', new Date().toISOString());
@@ -504,7 +504,7 @@ Your response (brief direct guidance):`;
         const errorText = await response.text();
         console.error('❌ Error Response Body:', errorText);
         console.groupEnd();
-        throw new Error(`Claude API Error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(`Prisma API Error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -513,7 +513,7 @@ Your response (brief direct guidance):`;
       if (!result.content || !result.content[0] || !result.content[0].text) {
         console.error('❌ Invalid Response Structure:', 'Missing content/text in API response');
         console.groupEnd();
-        throw new Error('Invalid response format from Claude API');
+        throw new Error('Invalid response format from Prisma API');
       }
       
       let responseText = result.content[0].text.trim();
@@ -521,7 +521,7 @@ Your response (brief direct guidance):`;
       
       // Handle SILENT responses
       if (responseText.toUpperCase() === 'SILENT') {
-        console.log('🤫 Claude chose to stay silent - no intervention needed');
+        console.log('🤫 Prisma chose to stay silent - no intervention needed');
         console.groupEnd();
         return null; // Return null to indicate no nudge should be shown
       }
@@ -573,7 +573,7 @@ Your response (brief direct guidance):`;
       return responseText;
       
     } catch (error) {
-      console.error('❌ Claude API Request Failed:', error);
+      console.error('❌ Prisma API Request Failed:', error);
       console.error('🔍 Error Details:', {
         name: error.name,
         message: error.message,
@@ -602,16 +602,16 @@ Your response (brief direct guidance):`;
   // Force analyze and nudge (for manual triggers)
   async forceAnalyzeAndNudge(structuredBatch, apiKey) {
     if (!structuredBatch || !apiKey) {
-      console.log('[Claude Nudge] Missing batch or API key for forced analysis');
+      console.log('[Prisma Nudge] Missing batch or API key for forced analysis');
       return null;
     }
 
     try {
-      console.log('[Claude Nudge] Force analyzing batch:', structuredBatch.batchId);
+      console.log('[Prisma Nudge] Force analyzing batch:', structuredBatch.batchId);
       
       // Analyze the structured text
       const analysis = this.analyzeStructuredText(structuredBatch.structuredText);
-      console.log('[Claude Nudge] Forced analysis:', analysis);
+      console.log('[Prisma Nudge] Forced analysis:', analysis);
 
       // Temporarily bypass cooldowns and generate nudge
       const originalLastNudgeTime = this.lastNudgeTime;
@@ -630,26 +630,26 @@ Your response (brief direct guidance):`;
       
       if (nudge) {
         nudge.manualTrigger = true;
-        console.log(`[Claude Nudge] Forced nudge generated: "${nudge.text}"`);
+        console.log(`[Prisma Nudge] Forced nudge generated: "${nudge.text}"`);
       }
       
       return nudge;
 
     } catch (error) {
-      console.error('[Claude Nudge] Error in forced analysis:', error);
+      console.error('[Prisma Nudge] Error in forced analysis:', error);
       return null;
     }
   }
 
-  // Generate forced nudge (Claude must respond, not stay silent)
+  // Generate forced nudge (Prisma must respond, not stay silent)
   async generateForcedNudge(structuredBatch, analysis, apiKey) {
     const now = Date.now();
     
     try {
-      const prompt = this.buildForcedClaudePrompt(structuredBatch, analysis);
-      const nudgeText = await this.callClaude(prompt, apiKey);
+      const prompt = this.buildForcedPrismaPrompt(structuredBatch, analysis);
+      const nudgeText = await this.callPrisma(prompt, apiKey);
       
-      // If Claude still tries to be silent, give a default encouraging response
+      // If Prisma still tries to be silent, give a default encouraging response
       const finalText = nudgeText || "Keep doing what you're doing - you're on the right track!";
       
       const nudge = {
@@ -670,17 +670,17 @@ Your response (brief direct guidance):`;
         this.nudgeHistory = this.nudgeHistory.slice(-20);
       }
 
-      console.log(`[Claude Nudge] Generated forced nudge`);
+      console.log(`[Prisma Nudge] Generated forced nudge`);
       return nudge;
 
     } catch (error) {
-      console.error('[Claude Nudge] Error generating forced nudge:', error);
+      console.error('[Prisma Nudge] Error generating forced nudge:', error);
       return null;
     }
   }
 
-  // Build forced prompt where Claude must give a response
-  buildForcedClaudePrompt(structuredBatch, analysis) {
+  // Build forced prompt where Prisma must give a response
+  buildForcedPrismaPrompt(structuredBatch, analysis) {
     const { structuredText } = structuredBatch;
     const { signalTypes, urgency } = analysis;
 
@@ -707,4 +707,4 @@ Your response (you MUST respond, do not say SILENT):`;
 }
 
 // Export as ES module
-export { ClaudeNudgeSystem };
+export { PrismaNudgeSystem };

@@ -24,11 +24,11 @@ let captureDataStore = [];
 
 // Import modules using static imports (works in service workers)
 import { TandemProcessor } from './tandem-processor.js';
-import { ClaudeNudgeSystem } from './claude-nudge-system.js';
+import { PrismaNudgeSystem } from './claude-nudge-system.js';
 
 // Initialize processors
 let tandemProcessor = null;
-let claudeNudgeSystem = null;
+let prismaNudgeSystem = null;
 
 // Initialize the two-stage system
 function initializeProcessors() {
@@ -38,7 +38,7 @@ function initializeProcessors() {
     tandemProcessor = new TandemProcessor();
     console.log('[Tandem] Processor initialized successfully');
     
-    claudeNudgeSystem = new ClaudeNudgeSystem();
+    prismaNudgeSystem = new PrismaNudgeSystem();
     console.log('[Tandem Nudge] System initialized successfully');
     
     // Start monitoring for structured batches
@@ -52,14 +52,14 @@ function initializeProcessors() {
   }
 }
 
-// Monitor for new structured batches and trigger Claude analysis
+// Monitor for new structured batches and trigger Prisma analysis
 function startBatchMonitoring() {
   setInterval(() => {
-    if (tandemProcessor && claudeNudgeSystem && storedApiKey) {
+    if (tandemProcessor && prismaNudgeSystem && storedApiKey) {
       try {
         const latestBatch = tandemProcessor.getLatestStructuredBatch();
         if (latestBatch && shouldAnalyzeBatch(latestBatch)) {
-          analyzeBatchWithClaude(latestBatch);
+          analyzeBatchWithPrisma(latestBatch);
         }
       } catch (error) {
         console.error('[Batch Monitor] Error:', error);
@@ -75,7 +75,7 @@ function shouldAnalyzeBatch(batch) {
   return batch && !analyzedBatches.has(batch.batchId);
 }
 
-async function analyzeBatchWithClaude(batch) {
+async function analyzeBatchWithPrisma(batch) {
   try {
     analyzedBatches.add(batch.batchId);
     
@@ -97,8 +97,8 @@ async function analyzeBatchWithClaude(batch) {
     console.log('📝 Structured Text Preview:', batch.structuredText.substring(0, 500) + '...');
     console.log('🎯 Full Structured Text:', batch.structuredText);
     
-    console.log('🧠 Calling Claude Nudge System...');
-    const nudge = await claudeNudgeSystem.analyzeAndNudge(batch, storedApiKey);
+    console.log('🧠 Calling Prisma Nudge System...');
+    const nudge = await prismaNudgeSystem.analyzeAndNudge(batch, storedApiKey);
     
     if (nudge) {
       console.log('✅ Nudge Generated Successfully!');
@@ -122,7 +122,7 @@ async function analyzeBatchWithClaude(batch) {
         }
       });
     } else {
-      console.log('🤫 Claude chose to stay silent - user is doing fine');
+      console.log('🤫 Prisma chose to stay silent - user is doing fine');
     }
     
     console.groupEnd();
@@ -183,8 +183,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     
     // Log for debugging
-    console.log(`[Athena Background] Capture ${captureEntry.timestamp}: ${captureEntry.diff ? captureEntry.diff.substring(0, 100) + '...' : 'No diff'}`);
-    console.log(`[Athena Background] Total captures stored: ${captureDataStore.length}`);
+    console.log(`[Prisma Background] Capture ${captureEntry.timestamp}: ${captureEntry.diff ? captureEntry.diff.substring(0, 100) + '...' : 'No diff'}`);
+    console.log(`[Prisma Background] Total captures stored: ${captureDataStore.length}`);
     
     // Feed data to Tandem processor for structured analysis
     if (tandemProcessor && captureEntry.diff && captureEntry.diff.trim()) {
@@ -231,18 +231,18 @@ async function handleManualAITrigger() {
     console.log('👤 User Action: Manual AI analysis requested');
     console.log('⏰ Trigger Time:', new Date().toISOString());
     
-    if (!tandemProcessor || !claudeNudgeSystem) {
+    if (!tandemProcessor || !prismaNudgeSystem) {
       console.error('❌ System Check Failed:', {
         tandemProcessor: !!tandemProcessor,
-        claudeNudgeSystem: !!claudeNudgeSystem
+        prismaNudgeSystem: !!prismaNudgeSystem
       });
       throw new Error('AI systems not initialized');
     }
     
     if (!storedApiKey) {
-      console.error('❌ API Key Check Failed: No Anthropic Claude API key available');
+      console.error('❌ API Key Check Failed: No Anthropic Prisma API key available');
       console.groupEnd();
-      throw new Error('Anthropic Claude API key not configured. Please check that the sidebar loaded properly and config.js contains a valid ANTHROPIC_API_KEY.');
+      throw new Error('Anthropic Prisma API key not configured. Please check that the sidebar loaded properly and config.js contains a valid ANTHROPIC_API_KEY.');
     }
     
     console.log('✅ System Check Passed - Forcing batch processing...');
@@ -262,10 +262,10 @@ async function handleManualAITrigger() {
       textLength: forcedBatch.structuredText.length
     });
     
-    console.log('🚀 Forcing Claude Analysis (bypassing cooldowns)...');
+    console.log('🚀 Forcing Prisma Analysis (bypassing cooldowns)...');
     
-    // Force Claude analysis regardless of cooldowns
-    const nudge = await claudeNudgeSystem.forceAnalyzeAndNudge(forcedBatch, storedApiKey);
+    // Force Prisma analysis regardless of cooldowns
+    const nudge = await prismaNudgeSystem.forceAnalyzeAndNudge(forcedBatch, storedApiKey);
     
     if (nudge) {
       console.log('✅ Manual Nudge Generated Successfully!');

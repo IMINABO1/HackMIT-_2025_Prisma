@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Tandem + Claude System</title>
+  <title>Test Tandem + Prisma System</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     .test-button { background: #007cba; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
@@ -14,12 +14,12 @@
   </style>
 </head>
 <body>
-  <h1>Test Tandem + Claude System</h1>
+  <h1>Test Tandem + Prisma System</h1>
   
   <div class="info">
     <strong>How it works:</strong><br>
     • Tandem collects data every 15 seconds and structures it with special tags<br>
-    • Claude analyzes structured data and provides nudges based on escalation levels<br>
+    • Prisma analyzes structured data and provides nudges based on escalation levels<br>
     • Level 1: Gentle nudges, Level 2: Stronger hints, Level 3: Full interference
   </div>
 
@@ -50,8 +50,8 @@
   <button class="test-button" onclick="clearContent()" style="background: #dc3545;">Clear Content</button>
 
   <div id="content">
-    Ready to test the new Tandem + Claude system...<br>
-    Open the extension sidebar and watch for Claude nudges!
+    Ready to test the new Tandem + Prisma system...<br>
+    Open the extension sidebar and watch for Prisma nudges!
   </div>
 
   <script>
@@ -95,7 +95,7 @@
           index++;
         } else {
           clearInterval(currentScenario);
-          updateContent('Error scenario complete. Watch for Claude nudges!');
+          updateContent('Error scenario complete. Watch for Prisma nudges!');
         }
       }, 3000); // Every 3 seconds
     }
@@ -122,7 +122,7 @@
           index++;
         } else {
           clearInterval(currentScenario);
-          updateContent('Confusion scenario complete. Watch for Claude nudges!');
+          updateContent('Confusion scenario complete. Watch for Prisma nudges!');
         }
       }, 4000); // Every 4 seconds
     }
@@ -151,7 +151,7 @@
           index++;
         } else {
           clearInterval(currentScenario);
-          updateContent('Context switching scenario complete. Watch for Claude nudges!');
+          updateContent('Context switching scenario complete. Watch for Prisma nudges!');
         }
       }, 2500); // Every 2.5 seconds - rapid switching
     }
@@ -179,7 +179,7 @@
           index++;
         } else {
           clearInterval(currentScenario);
-          updateContent('Prolonged focus scenario complete. Watch for Claude nudges!');
+          updateContent('Prolonged focus scenario complete. Watch for Prisma nudges!');
         }
       }, 5000); // Every 5 seconds - prolonged focus
     }

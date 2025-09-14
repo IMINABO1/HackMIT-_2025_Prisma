@@ -1,6 +1,6 @@
 // content.js - Simple continuous visible text capture
 
-console.log('[Athena] Content script loading...');
+console.log('[Prisma] Content script loading...');
 
 // Check if the extension context is still valid
 function isExtensionValid() {
@@ -126,7 +126,7 @@ function captureVisibleTextPeriodically() {
       };
       
       captureData.push(captureEntry);
-      console.log(`[Athena Capture] ${captureEntry.timestamp}: ${diff.substring(0, 100)}...`);
+      console.log(`[Prisma Capture] ${captureEntry.timestamp}: ${diff.substring(0, 100)}...`);
       
       // Send data to background script
       if (isExtensionValid()) {
@@ -135,7 +135,7 @@ function captureVisibleTextPeriodically() {
           data: captureEntry
         }, (response) => {
           if (chrome.runtime.lastError) {
-            console.error(`[Athena] Error sending capture:`, chrome.runtime.lastError);
+            console.error(`[Prisma] Error sending capture:`, chrome.runtime.lastError);
           }
         });
       }
@@ -144,7 +144,7 @@ function captureVisibleTextPeriodically() {
       lastCapturedText = currentText;
     }
   } catch (error) {
-    console.error('[Athena] Error in capture:', error);
+    console.error('[Prisma] Error in capture:', error);
   }
 }
 
@@ -154,11 +154,11 @@ function startPeriodicCapture() {
     clearInterval(captureInterval);
   }
   
-  console.log(`[Athena] Starting periodic capture every 2 seconds on ${window.location.href}`);
+  console.log(`[Prisma] Starting periodic capture every 2 seconds on ${window.location.href}`);
   
   // Set initial text baseline
   lastCapturedText = getVisibleText();
-  console.log(`[Athena] Initial baseline set: ${lastCapturedText.substring(0, 100)}...`);
+  console.log(`[Prisma] Initial baseline set: ${lastCapturedText.substring(0, 100)}...`);
   
   // Set up interval (start capturing after first interval)
   captureInterval = setInterval(captureVisibleTextPeriodically, 2000);
@@ -169,7 +169,7 @@ function stopPeriodicCapture() {
   if (captureInterval) {
     clearInterval(captureInterval);
     captureInterval = null;
-    console.log(`[Athena] Stopped periodic capture`);
+    console.log(`[Prisma] Stopped periodic capture`);
   }
 }
 
@@ -187,15 +187,15 @@ function clearCaptureHistory() {
 
 // Debug function
 function testCapture() {
-  console.log(`[Athena Debug] Current page: ${window.location.href}`);
-  console.log(`[Athena Debug] Extension valid: ${isExtensionValid()}`);
-  console.log(`[Athena Debug] Virtual timestamp: ${virtualTimestamp}`);
-  console.log(`[Athena Debug] Capture data entries: ${captureData.length}`);
-  console.log(`[Athena Debug] Interval running: ${!!captureInterval}`);
+  console.log(`[Prisma Debug] Current page: ${window.location.href}`);
+  console.log(`[Prisma Debug] Extension valid: ${isExtensionValid()}`);
+  console.log(`[Prisma Debug] Virtual timestamp: ${virtualTimestamp}`);
+  console.log(`[Prisma Debug] Capture data entries: ${captureData.length}`);
+  console.log(`[Prisma Debug] Interval running: ${!!captureInterval}`);
   
   const visibleText = getVisibleText();
-  console.log(`[Athena Debug] Current visible text length: ${visibleText.length}`);
-  console.log(`[Athena Debug] Current visible text preview: ${visibleText.substring(0, 200)}...`);
+  console.log(`[Prisma Debug] Current visible text length: ${visibleText.length}`);
+  console.log(`[Prisma Debug] Current visible text preview: ${visibleText.substring(0, 200)}...`);
   
   return {
     url: window.location.href,
@@ -210,7 +210,7 @@ function testCapture() {
 // Test diff function
 function testDiff(oldText, newText) {
   const diff = calculateDiff(oldText, newText);
-  console.log(`[Athena Diff Test]`);
+  console.log(`[Prisma Diff Test]`);
   console.log(`Old: "${oldText}"`);
   console.log(`New: "${newText}"`);
   console.log(`Diff: "${diff}"`);
@@ -223,7 +223,7 @@ window.athenaDiffTest = testDiff;
 
 // Main initialization logic
 function init() {
-  console.log('[Athena] Initializing content script...');
+  console.log('[Prisma] Initializing content script...');
   
   // Check if we're already initialized
   if (window.__athenaContentScriptInitialized) {
@@ -240,7 +240,7 @@ function init() {
 
   // Message listener with error handling
   const messageListener = (msg, sender, sendResponse) => {
-    console.log('[Athena] Received message:', msg.type);
+    console.log('[Prisma] Received message:', msg.type);
     
     // Check if extension is still valid
     if (!isExtensionValid()) {
@@ -275,12 +275,12 @@ function init() {
   // Only add listener if extension is valid
   if (chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener(messageListener);
-    console.log('[Athena] Message listener added');
+    console.log('[Prisma] Message listener added');
   }
 
   // Start periodic capture automatically after a delay
   setTimeout(() => {
-    console.log('[Athena] Starting automatic capture...');
+    console.log('[Prisma] Starting automatic capture...');
     startPeriodicCapture();
   }, 2000); // Wait 2 seconds for page to fully load
 }
@@ -297,4 +297,4 @@ if (document.readyState === 'loading') {
   init();
 }
 
-console.log('[Athena] Content script loaded successfully');
+console.log('[Prisma] Content script loaded successfully');

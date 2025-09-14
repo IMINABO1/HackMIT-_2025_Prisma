@@ -48,8 +48,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     
     // Log for debugging
-    console.log(`[Athena Background] Capture ${captureEntry.timestamp}: ${captureEntry.diff ? captureEntry.diff.substring(0, 100) + '...' : 'No diff'}`);
-    console.log(`[Athena Background] Total captures stored: ${captureDataStore.length}`);
+    console.log(`[Prisma Background] Capture ${captureEntry.timestamp}: ${captureEntry.diff ? captureEntry.diff.substring(0, 100) + '...' : 'No diff'}`);
+    console.log(`[Prisma Background] Total captures stored: ${captureDataStore.length}`);
     
     // TODO: Add AI analysis here once basic functionality is working
     

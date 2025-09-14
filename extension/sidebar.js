@@ -611,7 +611,7 @@ function showTandemNudge(nudgeData) {
   const banner = document.getElementById('ai-intervention-banner');
   const messageElement = document.getElementById('intervention-message');
   
-  // Display the Claude nudge message with manual trigger indicator
+  // Display the Prisma nudge message with manual trigger indicator
   let displayMessage = nudgeData.message;
   if (nudgeData.manualTrigger) {
     displayMessage = `⚡ ${displayMessage}`;

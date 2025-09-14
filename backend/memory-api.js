@@ -444,7 +444,7 @@ class MemoryAPI {
     });
   }
 
-  // Handle chat queries with Claude and memory context
+  // Handle chat queries with Prisma and memory context
   async handleChatQuery(req, res) {
     try {
       const { query, userId = 'demo-user' } = req.body;

@@ -1,8 +1,8 @@
-# Athena - AI Study Copilot 🧠
+# Prisma - AI Study Copilot 🧠
 
-A beautiful, intelligent study assistant that combines the clean productivity aesthetics of Motion with the friendly, gamified interface patterns of Duolingo. Athena helps students learn more effectively through AI-powered insights, interactive mind mapping, and personalized study guidance.
+A beautiful, intelligent study assistant that combines the clean productivity aesthetics of Motion with the friendly, gamified interface patterns of Duolingo. Prisma helps students learn more effectively through AI-powered insights, interactive mind mapping, and personalized study guidance.
 
-![Athena UI Preview](https://img.shields.io/badge/UI-Redesigned-purple?style=for-the-badge)
+![Prisma UI Preview](https://img.shields.io/badge/UI-Redesigned-purple?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -17,7 +17,7 @@ A beautiful, intelligent study assistant that combines the clean productivity ae
 - **WCAG AA Compliant**: Accessible design with proper color contrast ratios
 
 ### 🧠 **AI-Powered Learning**
-- **Intelligent Study Assistant**: Claude-powered AI that understands your learning context
+- **Intelligent Study Assistant**: Prisma-powered AI that understands your learning context
 - **Memory System**: Persistent learning profile that adapts to your progress
 - **Smart Interventions**: Proactive help when you're struggling with concepts
 - **Contextual Hints**: AI provides guidance without giving away answers
@@ -40,7 +40,7 @@ A beautiful, intelligent study assistant that combines the clean productivity ae
 ### Prerequisites
 - Node.js (v16 or higher)
 - Chrome browser (for extension)
-- Claude API key from Anthropic
+- Prisma API key
 
 ### Installation
 
@@ -61,8 +61,8 @@ A beautiful, intelligent study assistant that combines the clean productivity ae
    # Create environment file
    cp .env.example .env
    
-   # Add your Claude API key to .env
-   ANTHROPIC_API_KEY=your_api_key_here
+   # Add your Prisma API key to .env
+   PRISMA_API_KEY=your_api_key_here
    ```
 
 4. **Configure Chrome extension**
@@ -137,17 +137,17 @@ hackMIT/
 See `backend/README-local-setup.md` for detailed backend configuration instructions.
 
 ### API Keys
-1. **Anthropic Claude API**: Required for AI functionality
+1. **Prisma API**: Required for AI functionality
 2. **Optional**: Tandem DeepSeek API for additional AI features
 
 ### Environment Variables
 ```bash
 # Backend (.env)
-ANTHROPIC_API_KEY=your_key_here
+PRISMA_API_KEY=your_key_here
 PORT=3001
 
 # Extension (config.js)
-export const ANTHROPIC_API_KEY = "your_key_here";
+export const PRISMA_API_KEY = "your_key_here";
 ```
 
 ## 📚 Usage
@@ -184,7 +184,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Design Inspiration**: Motion (productivity) + Duolingo (gamification)
-- **AI Power**: Anthropic Claude for intelligent tutoring
+- **AI Power**: Prisma for intelligent tutoring
 - **Visualization**: D3.js for interactive mind maps
 - **Typography**: Inter font family for optimal readability
 - **Icons**: Emoji for friendly, accessible iconography
@@ -194,7 +194,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you encounter any issues or have questions:
 
 1. Check the [Issues](../../issues) page
-2. Review the setup documentation in `SETUP-CLAUDE.md`
+2. Review the setup documentation in `SETUP-PRISMA.md`
 3. Ensure your API keys are configured correctly
 4. Verify the backend server is running
 
@@ -202,4 +202,4 @@ If you encounter any issues or have questions:
 
 **Built with ❤️ for better learning experiences**
 
-*Athena combines the best of productivity and gamification to make studying more effective and enjoyable.*
+*Prisma combines the best of productivity and gamification to make studying more effective and enjoyable.*
