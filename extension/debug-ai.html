@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug AI Analyzer</title>
+  <script src="ai-analyzer.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .output { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    button { background: #007cba; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>AI Analyzer Debug Tool</h1>
+  
+  <button onclick="testBasicFunctionality()">Test Basic Functionality</button>
+  <button onclick="testErrorPattern()">Test Error Pattern</button>
+  <button onclick="testConfusionPattern()">Test Confusion Pattern</button>
+  <button onclick="clearOutput()">Clear Output</button>
+  
+  <div id="output" class="output">Click a test button above...</div>
+
+  <script>
+    let output = document.getElementById('output');
+    let analyzer = null;
+
+    function log(message) {
+      output.innerHTML += message + '<br>';
+      console.log(message);
+    }
+
+    function clearOutput() {
+      output.innerHTML = 'Output cleared...<br>';
+    }
+
+    function testBasicFunctionality() {
+      clearOutput();
+      log('Testing basic AI analyzer functionality...');
+      
+      try {
+        if (typeof AIAnalyzer === 'undefined') {
+          log('❌ AIAnalyzer class not found');
+          return;
+        }
+        
+        analyzer = new AIAnalyzer();
+        log('✅ AIAnalyzer created successfully');
+        
+        // Test with a simple capture entry
+        const testEntry = {
+          timestamp: '01',
+          diff: 'Test content change',
+          fullText: 'This is test content',
+          url: 'test://example.com',
+          capturedAt: new Date().toISOString()
+        };
+        
+        const result = analyzer.analyzeBehaviorPattern(testEntry);
+        log('Analysis result: ' + JSON.stringify(result, null, 2));
+        
+      } catch (error) {
+        log('❌ Error: ' + error.message);
+      }
+    }
+
+    function testErrorPattern() {
+      clearOutput();
+      log('Testing error pattern detection...');
+      
+      if (!analyzer) {
+        analyzer = new AIAnalyzer();
+      }
+      
+      const errorEntries = [
+        { diff: 'Error: Cannot read property', capturedAt: new Date().toISOString() },
+        { diff: 'I have a problem with this', capturedAt: new Date().toISOString() },
+        { diff: 'Another issue appeared', capturedAt: new Date().toISOString() },
+        { diff: 'Still stuck on this error', capturedAt: new Date().toISOString() }
+      ];
+      
+      errorEntries.forEach((entry, index) => {
+        const result = analyzer.analyzeBehaviorPattern(entry);
+        log(`Entry ${index + 1}: ${result.interventionRecommended ? '🔥 INTERVENTION' : '⏳ No intervention'}`);
+        if (result.interventionRecommended) {
+          log(`  Type: ${result.interventionType}`);
+          log(`  Reason: ${result.reason}`);
+        }
+      });
+    }
+
+    function testConfusionPattern() {
+      clearOutput();
+      log('Testing confusion pattern detection...');
+      
+      if (!analyzer) {
+        analyzer = new AIAnalyzer();
+      }
+      
+      const confusionEntries = [
+        { diff: 'I am really confused about this', capturedAt: new Date().toISOString() },
+        { diff: 'I dont understand whats happening', capturedAt: new Date().toISOString() },
+        { diff: 'I am completely stuck here', capturedAt: new Date().toISOString() }
+      ];
+      
+      confusionEntries.forEach((entry, index) => {
+        const result = analyzer.analyzeBehaviorPattern(entry);
+        log(`Entry ${index + 1}: ${result.interventionRecommended ? '🔥 INTERVENTION' : '⏳ No intervention'}`);
+        if (result.interventionRecommended) {
+          log(`  Type: ${result.interventionType}`);
+          log(`  Reason: ${result.reason}`);
+        }
+      });
+    }
+
+    // Auto-run basic test
+    setTimeout(testBasicFunctionality, 500);
+  </script>
+</body>
+</html>

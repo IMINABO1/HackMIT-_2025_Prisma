@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Nudging Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .math-problem { background: #e7f3ff; padding: 15px; border-left: 4px solid #007bff; margin: 10px 0; }
+        .answer-area { background: #fff; padding: 10px; border: 1px solid #ddd; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Math Nudging Test Page</h1>
+    
+    <div class="math-problem">
+        <h3>Dice Probability Problem</h3>
+        <p>You roll a fair 6-sided die twice. Calculate the probability that the value of the first roll is strictly less than the value of the second roll.</p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Incorrect Answers</h3>
+        <p>Click these buttons to simulate typing incorrect answers that should trigger nudges:</p>
+        
+        <button onclick="simulateIncorrectAnswer()">Type "I think the answer is 1/89"</button>
+        <button onclick="simulateAnotherIncorrect()">Type "The answer is 1/90"</button>
+        <button onclick="simulateCorrectAnswer()">Type "I think it's 15/36 = 5/12"</button>
+    </div>
+
+    <div class="answer-area" id="answer-display">
+        Click a button above to simulate typing an answer...
+    </div>
+
+    <div class="test-section">
+        <h3>Manual AI Trigger</h3>
+        <button onclick="triggerAI()">🤖 Trigger AI Analysis Now</button>
+        <div id="ai-result"></div>
+    </div>
+
+    <script>
+        let answerCounter = 0;
+        
+        function simulateIncorrectAnswer() {
+            answerCounter++;
+            const display = document.getElementById('answer-display');
+            display.textContent = `I think the answer is 1/89. This should be wrong because there are only 36 possible outcomes when rolling two dice.`;
+            console.log('[Test] Simulated incorrect answer: 1/89');
+        }
+        
+        function simulateAnotherIncorrect() {
+            answerCounter++;
+            const display = document.getElementById('answer-display');
+            display.textContent = `The answer is 1/90. I calculated this by... wait, that doesn't seem right.`;
+            console.log('[Test] Simulated another incorrect answer: 1/90');
+        }
+        
+        function simulateCorrectAnswer() {
+            answerCounter++;
+            const display = document.getElementById('answer-display');
+            display.textContent = `I think it's 15/36 = 5/12. First die can be 1-5, second must be greater. (1,2-6)=5 + (2,3-6)=4 + (3,4-6)=3 + (4,5-6)=2 + (5,6)=1 = 15 total.`;
+            console.log('[Test] Simulated correct answer: 15/36');
+        }
+        
+        function triggerAI() {
+            const resultDiv = document.getElementById('ai-result');
+            resultDiv.innerHTML = '<p>🔄 Triggering AI analysis...</p>';
+            
+            chrome.runtime.sendMessage({type: 'TRIGGER_AI_NOW'}, (response) => {
+                if (chrome.runtime.lastError) {
+                    resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${chrome.runtime.lastError.message}</p>`;
+                } else if (response.success) {
+                    if (response.result.nudgeGenerated) {
+                        resultDiv.innerHTML = `<p style="color: green;">✅ Nudge generated: "${response.result.message}"</p>`;
+                    } else {
+                        resultDiv.innerHTML = `<p style="color: orange;">⚠️ ${response.result.message}</p>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">❌ ${response.error}</p>`;
+                }
+            });
+        }
+        
+        // Log page info
+        console.log('[Test] Math nudging test page loaded');
+        console.log('[Test] This page tests detection of incorrect mathematical answers');
+        
+        // Auto-trigger after a few seconds to test
+        setTimeout(() => {
+            console.log('[Test] Auto-simulating incorrect answer for testing...');
+            simulateIncorrectAnswer();
+            
+            // Then trigger AI after another delay
+            setTimeout(() => {
+                console.log('[Test] Auto-triggering AI analysis...');
+                triggerAI();
+            }, 3000);
+        }, 2000);
+    </script>
+</body>
+</html>

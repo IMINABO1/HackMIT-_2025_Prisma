@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tandem Inference Logging Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.1); 
+            padding: 30px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(10px);
+        }
+        .test-section { 
+            background: rgba(255,255,255,0.1); 
+            padding: 20px; 
+            margin: 15px 0; 
+            border-radius: 10px; 
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        button { 
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            margin: 8px; 
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .console-instructions {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00d2ff;
+            margin: 20px 0;
+        }
+        .math-problem { 
+            background: rgba(255,255,255,0.15); 
+            padding: 20px; 
+            border-left: 4px solid #00d2ff; 
+            margin: 15px 0; 
+            border-radius: 8px;
+        }
+        .answer-area { 
+            background: rgba(0,0,0,0.2); 
+            padding: 15px; 
+            border: 2px dashed rgba(255,255,255,0.3); 
+            margin: 15px 0; 
+            border-radius: 8px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        .status { 
+            padding: 12px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            font-weight: bold;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); border-left: 4px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.3); border-left: 4px solid #f44336; }
+        .info { background: rgba(33, 150, 243, 0.3); border-left: 4px solid #2196F3; }
+        .warning { background: rgba(255, 152, 0, 0.3); border-left: 4px solid #FF9800; }
+        
+        h1, h2, h3 { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .emoji { font-size: 1.2em; margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Tandem AI Inference Logging Test</h1>
+        
+        <div class="console-instructions">
+            <h3>📋 Console Logging Instructions</h3>
+            <p><strong>Open your browser's Developer Console (F12) to see detailed Tandem inference logs!</strong></p>
+            <p>The enhanced logging will show:</p>
+            <ul>
+                <li>🚀 <strong>Inference Triggers</strong> - When and why Tandem analysis starts</li>
+                <li>📝 <strong>Input Data</strong> - Full prompts sent to Tandem API</li>
+                <li>🌐 <strong>API Requests</strong> - Request body, headers, timing</li>
+                <li>✅ <strong>API Responses</strong> - Raw responses, token usage, processing time</li>
+                <li>🎯 <strong>Final Results</strong> - Processed nudges and decisions</li>
+            </ul>
+        </div>
+
+        <div class="math-problem">
+            <h3>🎲 Test Problem: Dice Probability</h3>
+            <p><strong>Problem:</strong> You roll a fair 6-sided die twice. Calculate the probability that the value of the first roll is strictly less than the value of the second roll.</p>
+            <p><em>This problem is designed to test mathematical error detection in the AI system.</em></p>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test Scenarios</h3>
+            <p>Click these buttons to simulate different user behaviors and trigger Tandem inference:</p>
+            
+            <button onclick="simulateIncorrectMath()">
+                <span class="emoji">❌</span>Simulate Incorrect Answer (1/89)
+            </button>
+            
+            <button onclick="simulateConfusion()">
+                <span class="emoji">😕</span>Simulate Confusion
+            </button>
+            
+            <button onclick="simulateError()">
+                <span class="emoji">🚨</span>Simulate Error State
+            </button>
+            
+            <button onclick="simulateCorrectAnswer()">
+                <span class="emoji">✅</span>Simulate Correct Answer
+            </button>
+        </div>
+
+        <div class="answer-area" id="answer-display">
+            <em>Click a test button above to simulate user activity...</em>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Manual Inference Trigger</h3>
+            <p>Force immediate Tandem AI analysis regardless of timing conditions:</p>
+            
+            <button onclick="triggerManualInference()" style="background: linear-gradient(45deg, #00d2ff, #3a7bd5);">
+                <span class="emoji">🚀</span>Trigger Tandem Inference Now
+            </button>
+            
+            <div id="inference-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 System Status</h3>
+            <button onclick="checkSystemStatus()">
+                <span class="emoji">🔍</span>Check Extension Status
+            </button>
+            <div id="system-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📈 Real-time Activity</h3>
+            <p>The extension automatically captures text changes every 2 seconds. Any changes to this page content will be logged.</p>
+            <div id="activity-log"></div>
+        </div>
+    </div>
+
+    <script>
+        let testCounter = 0;
+        
+        function updateAnswerDisplay(text, type = 'info') {
+            testCounter++;
+            const display = document.getElementById('answer-display');
+            display.innerHTML = `<strong>Test ${testCounter}:</strong> ${text}`;
+            display.className = `answer-area ${type}`;
+            
+            console.log(`%c[Test Page] Simulated Activity ${testCounter}`, 'color: #ff6b6b; font-weight: bold;', text);
+        }
+        
+        function simulateIncorrectMath() {
+            updateAnswerDisplay('I think the answer is 1/89. Let me double-check this calculation...', 'error');
+            setTimeout(() => {
+                updateAnswerDisplay('Yes, I\'m confident the answer is 1/89 because there are 89 possible outcomes.', 'error');
+            }, 2000);
+        }
+        
+        function simulateConfusion() {
+            updateAnswerDisplay('I\'m confused about this problem. I don\'t understand how to approach it.', 'warning');
+            setTimeout(() => {
+                updateAnswerDisplay('Help! I\'m stuck and don\'t know what to do next.', 'warning');
+            }, 2000);
+        }
+        
+        function simulateError() {
+            updateAnswerDisplay('Error: This doesn\'t make sense. Something is wrong with my calculation.', 'error');
+            setTimeout(() => {
+                updateAnswerDisplay('I keep getting errors when I try to solve this. The problem seems broken.', 'error');
+            }, 2000);
+        }
+        
+        function simulateCorrectAnswer() {
+            updateAnswerDisplay('Let me think systematically. There are 6×6=36 total outcomes when rolling two dice.', 'success');
+            setTimeout(() => {
+                updateAnswerDisplay('For first < second: (1,2-6)=5 + (2,3-6)=4 + (3,4-6)=3 + (4,5-6)=2 + (5,6)=1 = 15 outcomes. So 15/36 = 5/12.', 'success');
+            }, 3000);
+        }
+        
+        function triggerManualInference() {
+            const resultDiv = document.getElementById('inference-result');
+            resultDiv.innerHTML = '<div class="status info">🔄 Triggering Tandem AI inference... Check console for detailed logs!</div>';
+            
+            console.group('%c🎯 [Test Page] Manual Inference Trigger', 'color: #00d2ff; font-size: 16px; font-weight: bold;');
+            console.log('User clicked manual trigger button');
+            console.log('Timestamp:', new Date().toISOString());
+            
+            chrome.runtime.sendMessage({type: 'TRIGGER_AI_NOW'}, (response) => {
+                if (chrome.runtime.lastError) {
+                    resultDiv.innerHTML = `<div class="status error">❌ Error: ${chrome.runtime.lastError.message}</div>`;
+                    console.error('Manual trigger failed:', chrome.runtime.lastError);
+                } else if (response && response.success) {
+                    if (response.result && response.result.nudgeGenerated) {
+                        resultDiv.innerHTML = `<div class="status success">✅ Nudge Generated: "${response.result.message}"</div>`;
+                        console.log('✅ Manual trigger successful:', response.result);
+                    } else {
+                        resultDiv.innerHTML = `<div class="status warning">⚠️ ${response.result ? response.result.message : 'No nudge generated'}</div>`;
+                        console.log('⚠️ Manual trigger completed but no nudge:', response.result);
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ Unexpected response: ${JSON.stringify(response)}</div>`;
+                    console.error('Unexpected response:', response);
+                }
+                console.groupEnd();
+            });
+        }
+        
+        function checkSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            
+            console.group('%c🔍 [Test Page] System Status Check', 'color: #4CAF50; font-size: 14px; font-weight: bold;');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                statusDiv.innerHTML = '<div class="status success">✅ Extension context available</div>';
+                console.log('✅ Chrome extension context is available');
+                
+                // Test communication
+                chrome.runtime.sendMessage({type: 'GET_CAPTURE_HISTORY'}, (response) => {
+                    if (chrome.runtime.lastError) {
+                        statusDiv.innerHTML += '<div class="status error">❌ Communication failed: ' + chrome.runtime.lastError.message + '</div>';
+                        console.error('❌ Extension communication failed:', chrome.runtime.lastError);
+                    } else {
+                        statusDiv.innerHTML += '<div class="status success">✅ Extension communication working</div>';
+                        console.log('✅ Extension communication successful');
+                        
+                        if (response && response.data) {
+                            statusDiv.innerHTML += `<div class="status info">📊 Capture history: ${response.data.length} entries</div>`;
+                            console.log('📊 Capture data entries:', response.data.length);
+                        }
+                    }
+                    console.groupEnd();
+                });
+            } else {
+                statusDiv.innerHTML = '<div class="status error">❌ Extension not detected</div>';
+                console.error('❌ Extension not detected or not loaded');
+                console.groupEnd();
+            }
+        }
+        
+        // Auto-run tests for demonstration
+        setTimeout(() => {
+            console.log('%c🚀 [Test Page] Auto-starting demonstration...', 'color: #ff6b6b; font-size: 18px; font-weight: bold;');
+            simulateIncorrectMath();
+            
+            setTimeout(() => {
+                triggerManualInference();
+            }, 5000);
+        }, 2000);
+        
+        // Log page initialization
+        console.group('%c🎉 [Test Page] Tandem Logging Test Initialized', 'color: #00d2ff; font-size: 20px; font-weight: bold;');
+        console.log('📄 Test page loaded successfully');
+        console.log('🎯 Purpose: Test enhanced Tandem AI inference logging');
+        console.log('📋 Instructions: Watch console for detailed inference logs');
+        console.log('⏰ Loaded at:', new Date().toISOString());
+        console.groupEnd();
+    </script>
+</body>
+</html>

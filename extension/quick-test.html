@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick AI Intervention Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .test-button { background: #007cba; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; cursor: pointer; }
+    #content { background: #f5f5f5; padding: 10px; margin: 10px 0; min-height: 100px; }
+  </style>
+</head>
+<body>
+  <h1>Quick AI Intervention Test</h1>
+  <p>This page should trigger Claude to intervene within 30 seconds!</p>
+  
+  <button class="test-button" onclick="triggerErrors()">Trigger Error Pattern</button>
+  <button class="test-button" onclick="triggerConfusion()">Trigger Confusion</button>
+  <button class="test-button" onclick="triggerTimeWithoutProgress()">Trigger Time Without Progress</button>
+  
+  <div id="content">
+    Ready to test AI intervention...
+  </div>
+
+  <script>
+    let content = document.getElementById('content');
+    let counter = 0;
+
+    function triggerErrors() {
+      const errors = [
+        'Error: Cannot read property of undefined',
+        'I have a problem with this code',
+        'There\'s an issue I can\'t solve',
+        'Getting stuck on this error',
+        'Help! Another error appeared'
+      ];
+      
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < errors.length) {
+          content.textContent = `${++counter}: ${errors[i]}`;
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 2500); // Every 2.5 seconds to match capture frequency
+    }
+
+    function triggerConfusion() {
+      const confusion = [
+        'I\'m really confused about this',
+        'I don\'t understand what\'s happening',
+        'I\'m completely stuck here',
+        'This is so confusing to me',
+        'I need help, I\'m lost'
+      ];
+      
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < confusion.length) {
+          content.textContent = `${++counter}: ${confusion[i]}`;
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 2500);
+    }
+
+    function triggerTimeWithoutProgress() {
+      content.textContent = `${++counter}: Working on this problem for a while now...`;
+      
+      // Just wait - the 30 second timeout should trigger intervention
+      setTimeout(() => {
+        content.textContent += '\n\nStill working on the same thing...';
+      }, 15000);
+    }
+
+    // Start automatically with confusion pattern
+    setTimeout(triggerConfusion, 1000);
+  </script>
+</body>
+</html>

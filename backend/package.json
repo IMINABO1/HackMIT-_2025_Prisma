@@ -1,0 +1,34 @@
+{
+  "name": "ai-study-copilot-backend",
+  "version": "1.0.0",
+  "description": "Backend API for AI Study Copilot with Mem0-inspired memory management",
+  "main": "memory-api.js",
+  "scripts": {
+    "start": "node memory-api.js",
+    "dev": "nodemon memory-api.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "education",
+    "copilot",
+    "mem0",
+    "supabase"
+  ],
+  "author": "AI Study Copilot Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "@supabase/supabase-js": "^2.38.0",
+    "openai": "^4.20.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

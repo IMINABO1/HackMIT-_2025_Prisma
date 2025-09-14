@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>API Key Configuration Debug</h1>
+    
+    <div id="results"></div>
+    
+    <script type="module">
+        import { ANTHROPIC_API_KEY, TANDEM_DeepSeek_API_KEY } from './config.js';
+        
+        const results = document.getElementById('results');
+        
+        function addResult(title, content, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${title}:</strong><br><pre>${content}</pre>`;
+            results.appendChild(div);
+        }
+        
+        // Check API keys
+        addResult('Anthropic API Key', 
+            ANTHROPIC_API_KEY ? `✓ Present: ${ANTHROPIC_API_KEY.substring(0, 20)}...` : '✗ Missing',
+            ANTHROPIC_API_KEY ? 'success' : 'error'
+        );
+        
+        addResult('Tandem DeepSeek API Key', 
+            TANDEM_DeepSeek_API_KEY ? `✓ Present: ${TANDEM_DeepSeek_API_KEY.substring(0, 10)}...` : '✗ Missing',
+            TANDEM_DeepSeek_API_KEY ? 'success' : 'error'
+        );
+        
+        // Test sending API key to background
+        if (TANDEM_DeepSeek_API_KEY) {
+            chrome.runtime.sendMessage({
+                type: 'SET_API_KEY',
+                data: { apiKey: TANDEM_DeepSeek_API_KEY }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    addResult('Background Communication', 
+                        `✗ Error: ${chrome.runtime.lastError.message}`, 
+                        'error'
+                    );
+                } else {
+                    addResult('Background Communication', 
+                        '✓ API key sent to background successfully', 
+                        'success'
+                    );
+                }
+            });
+        }
+        
+        // Check extension context
+        addResult('Extension Context', 
+            chrome.runtime && chrome.runtime.id ? '✓ Extension loaded' : '✗ Extension not detected',
+            chrome.runtime && chrome.runtime.id ? 'success' : 'error'
+        );
+        
+        console.log('API Key Debug Results:');
+        console.log('Anthropic API Key:', ANTHROPIC_API_KEY ? 'Present' : 'Missing');
+        console.log('Tandem API Key:', TANDEM_DeepSeek_API_KEY ? 'Present' : 'Missing');
+    </script>
+</body>
+</html>

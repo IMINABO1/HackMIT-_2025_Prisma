@@ -1,0 +1,123 @@
+<!-- sidebar.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Study Copilot</title>
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+   <script src="./tailwind_v4_1_13.js"></script>
+</head>
+<body class="bg-gray-50 w-[360px] h-screen flex flex-col">
+  <header class="p-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold shadow-lg">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+          <span class="text-indigo-600 text-sm font-bold">🧠</span>
+        </div>
+        <span>Athena</span>
+      </div>
+      <div id="memory-status" class="text-xs text-gray-300">🧠 Memory Loading...</div>
+    </div>
+  </header>
+  
+  <!-- AI Intervention Notification Area -->
+  <div id="ai-intervention-banner" class="hidden bg-orange-100 border-b border-orange-200 px-4 py-3">
+    <div class="flex items-start space-x-3">
+      <div class="flex-shrink-0">
+        <span class="text-orange-600">🤖</span>
+      </div>
+      <div class="flex-1 text-sm">
+        <div class="font-medium text-orange-800 mb-1">AI Study Assistant</div>
+        <div id="intervention-message" class="text-orange-700"></div>
+        <div class="mt-2 flex space-x-2">
+          <button id="intervention-dismiss" class="text-xs bg-orange-200 hover:bg-orange-300 text-orange-800 px-2 py-1 rounded">
+            Got it
+          </button>
+          <button id="intervention-ask-more" class="text-xs bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded">
+            Tell me more
+          </button>
+        </div>
+      </div>
+      <button id="intervention-close" class="flex-shrink-0 text-orange-400 hover:text-orange-600">
+        ✕
+      </button>
+    </div>
+  </div>
+  
+  <nav class="flex border-b border-gray-200 bg-white shadow-sm">
+    <button id="tab-ask" class="flex-1 py-3 text-center hover:bg-indigo-50 font-medium text-gray-700 transition-colors duration-200 border-b-2 border-transparent">
+      <span class="text-sm">💬 Ask AI</span>
+    </button>
+    <button id="tab-notes" class="flex-1 py-3 text-center hover:bg-indigo-50 font-medium text-gray-700 transition-colors duration-200 border-b-2 border-transparent">
+      <span class="text-sm">📝 Notes</span>
+    </button>
+    <button id="tab-typing" class="flex-1 py-3 text-center hover:bg-indigo-50 font-medium text-gray-700 transition-colors duration-200 border-b-2 border-transparent">
+      <span class="text-sm">⌨️ Typing</span>
+    </button>
+  </nav>
+  <main id="tab-content" class="flex-1 overflow-y-auto p-4 bg-white">
+    <!-- Ask AI -->
+    <section data-tab="ask" class="space-y-4">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700">Ask your question or explain selected text:</label>
+        <textarea id="ask-input" placeholder="What would you like to understand better?" class="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+      </div>
+      <button id="ask-submit" class="w-full px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium">
+        Ask AI
+      </button>
+      <div class="space-y-2">
+        <button id="explain-selection" class="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
+          Explain Selected Text
+        </button>
+        <button id="trigger-ai-now" class="w-full px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors duration-200 text-sm font-medium">
+          🤖 Get AI Help Now
+        </button>
+        <button id="remember-this" class="w-full px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors duration-200 text-sm">
+          Remember This
+        </button>
+      </div>
+      <div id="ask-response" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-line min-h-[60px] border border-gray-200"></div>
+    </section>
+    <!-- Notes -->
+    <section data-tab="notes" class="hidden space-y-4">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700">Quick note:</label>
+        <textarea id="note-input" placeholder="Jot down a quick learning note..." class="w-full h-24 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+      </div>
+      <button id="note-save" class="w-full px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium">
+        Save Note
+      </button>
+      <div class="space-y-2">
+        <h3 class="text-sm font-medium text-gray-700">Your Notes:</h3>
+        <ul id="notes-list" class="space-y-2"></ul>
+      </div>
+    </section>
+    
+    <!-- Capture History -->
+    <section data-tab="typing" class="hidden space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-sm font-medium text-gray-700">Page Activity</h3>
+        <div class="space-x-2">
+          <button id="refresh-typing" class="px-3 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200 transition-colors">
+            Refresh
+          </button>
+          <button id="clear-typing" class="px-3 py-1 bg-red-100 text-red-800 rounded text-xs hover:bg-red-200 transition-colors">
+            Clear
+          </button>
+        </div>
+      </div>
+      <div class="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+        Format: <strong>timestamp: diff</strong><br>
+        Captures what changes every 2 seconds (typing, scrolling, etc.).
+      </div>
+      <div id="typing-history" class="space-y-1 max-h-96 overflow-y-auto">
+        <div class="text-sm text-gray-500 text-center py-4">
+          No capture data yet. Extension captures visible text changes every 2 seconds.
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="sidebar.js"></script>
+</body>
+</html>

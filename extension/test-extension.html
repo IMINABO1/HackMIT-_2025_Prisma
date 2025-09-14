@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Athena Extension Test Page</h1>
+    
+    <div class="status info">
+        <strong>Instructions:</strong>
+        <ol>
+            <li>Load this extension in Chrome (Developer mode)</li>
+            <li>Open this test page</li>
+            <li>Click the extension icon to open the sidebar</li>
+            <li>Watch the console for any errors</li>
+            <li>Try the test buttons below</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Content Changes</h3>
+        <p>This text will change when you click the button below. The extension should detect these changes.</p>
+        <div id="dynamic-content">Original content - click button to change</div>
+        <button onclick="changeContent()">Change Content</button>
+        <button onclick="addError()">Add Error Text</button>
+        <button onclick="addConfusion()">Add Confusion Text</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Extension Status</h3>
+        <button onclick="checkExtension()">Check Extension Status</button>
+        <div id="extension-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Console Log</h3>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let changeCounter = 0;
+        
+        // Override console.log to show in our log div
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logDiv = document.getElementById('log');
+        
+        function addToLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : '#0f0';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog('ERROR: ' + args.join(' '), 'error');
+        };
+        
+        function changeContent() {
+            changeCounter++;
+            const content = document.getElementById('dynamic-content');
+            const messages = [
+                `Content changed ${changeCounter} times`,
+                `New content update #${changeCounter}`,
+                `Testing content detection ${changeCounter}`,
+                `Dynamic change number ${changeCounter}`
+            ];
+            content.textContent = messages[changeCounter % messages.length];
+            console.log(`Content changed to: ${content.textContent}`);
+        }
+        
+        function addError() {
+            changeCounter++;
+            const content = document.getElementById('dynamic-content');
+            content.textContent = `Error: Something went wrong! Attempt ${changeCounter}`;
+            console.log('Added error text for testing');
+        }
+        
+        function addConfusion() {
+            changeCounter++;
+            const content = document.getElementById('dynamic-content');
+            content.textContent = `I'm confused and don't understand this problem ${changeCounter}`;
+            console.log('Added confusion text for testing');
+        }
+        
+        function checkExtension() {
+            const statusDiv = document.getElementById('extension-status');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                statusDiv.innerHTML = '<div class="status success">✓ Extension context is available</div>';
+                
+                // Try to send a message to the extension
+                chrome.runtime.sendMessage({type: 'GET_CAPTURE_HISTORY'}, (response) => {
+                    if (chrome.runtime.lastError) {
+                        statusDiv.innerHTML += '<div class="status error">✗ Error communicating with extension: ' + chrome.runtime.lastError.message + '</div>';
+                    } else {
+                        statusDiv.innerHTML += '<div class="status success">✓ Extension communication working</div>';
+                        if (response && response.data) {
+                            statusDiv.innerHTML += '<div class="status info">📊 Capture history: ' + response.data.length + ' entries</div>';
+                        }
+                    }
+                });
+            } else {
+                statusDiv.innerHTML = '<div class="status error">✗ Extension not detected or not loaded</div>';
+            }
+        }
+        
+        function clearLog() {
+            logDiv.innerHTML = '';
+        }
+        
+        // Auto-check extension status on load
+        setTimeout(checkExtension, 1000);
+        
+        // Log page load
+        console.log('Test page loaded successfully');
+        console.log('Extension should start capturing content changes automatically');
+    </script>
+</body>
+</html>

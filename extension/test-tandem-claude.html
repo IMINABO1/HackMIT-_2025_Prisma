@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Tandem + Claude System</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .test-button { background: #007cba; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+    .test-button:hover { background: #005a82; }
+    #content { background: #f5f5f5; padding: 15px; margin: 10px 0; min-height: 100px; border-radius: 5px; }
+    .scenario { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    .info { background: #e8f4fd; padding: 10px; border-radius: 5px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Test Tandem + Claude System</h1>
+  
+  <div class="info">
+    <strong>How it works:</strong><br>
+    • Tandem collects data every 15 seconds and structures it with special tags<br>
+    • Claude analyzes structured data and provides nudges based on escalation levels<br>
+    • Level 1: Gentle nudges, Level 2: Stronger hints, Level 3: Full interference
+  </div>
+
+  <div class="scenario">
+    <h3>Scenario 1: Error Pattern (Should trigger Level 2-3 nudge)</h3>
+    <button class="test-button" onclick="runErrorScenario()">Start Error Scenario</button>
+    <p>Simulates repeated errors and confusion - should escalate quickly</p>
+  </div>
+
+  <div class="scenario">
+    <h3>Scenario 2: Confusion Pattern (Should trigger Level 1-2 nudge)</h3>
+    <button class="test-button" onclick="runConfusionScenario()">Start Confusion Scenario</button>
+    <p>Simulates expressions of confusion and being stuck</p>
+  </div>
+
+  <div class="scenario">
+    <h3>Scenario 3: Context Switching (Should trigger Level 1 nudge)</h3>
+    <button class="test-button" onclick="runContextSwitchingScenario()">Start Context Switching</button>
+    <p>Simulates rapid switching between different topics</p>
+  </div>
+
+  <div class="scenario">
+    <h3>Scenario 4: Prolonged Focus (Should trigger Level 2-3 nudge)</h3>
+    <button class="test-button" onclick="runProlongedFocusScenario()">Start Prolonged Focus</button>
+    <p>Simulates being stuck on the same thing for a long time</p>
+  </div>
+
+  <button class="test-button" onclick="clearContent()" style="background: #dc3545;">Clear Content</button>
+
+  <div id="content">
+    Ready to test the new Tandem + Claude system...<br>
+    Open the extension sidebar and watch for Claude nudges!
+  </div>
+
+  <script>
+    let content = document.getElementById('content');
+    let counter = 0;
+    let currentScenario = null;
+
+    function updateContent(text) {
+      content.innerHTML = `<strong>Update ${++counter}:</strong><br>${text}`;
+    }
+
+    function clearContent() {
+      content.innerHTML = 'Content cleared. Ready for new test...';
+      counter = 0;
+      if (currentScenario) {
+        clearInterval(currentScenario);
+        currentScenario = null;
+      }
+    }
+
+    function runErrorScenario() {
+      clearContent();
+      updateContent('Starting error pattern scenario...');
+      
+      const errorMessages = [
+        'TypeError: Cannot read property "length" of undefined',
+        'I keep getting this error and I don\'t understand why',
+        'ReferenceError: variable is not defined - what does this mean?',
+        'I\'m really stuck on this error, it keeps happening',
+        'SyntaxError: Unexpected token - I\'ve been trying to fix this for ages',
+        'I have a problem with my code and I can\'t figure it out',
+        'Another error appeared and I\'m getting frustrated',
+        'I need help, these errors are confusing me',
+        'I\'m completely lost with all these error messages'
+      ];
+      
+      let index = 0;
+      currentScenario = setInterval(() => {
+        if (index < errorMessages.length) {
+          updateContent(errorMessages[index]);
+          index++;
+        } else {
+          clearInterval(currentScenario);
+          updateContent('Error scenario complete. Watch for Claude nudges!');
+        }
+      }, 3000); // Every 3 seconds
+    }
+
+    function runConfusionScenario() {
+      clearContent();
+      updateContent('Starting confusion pattern scenario...');
+      
+      const confusionMessages = [
+        'I don\'t understand how this function works',
+        'This concept is really confusing to me',
+        'I\'m not sure what I\'m supposed to do here',
+        'I feel lost and don\'t know where to start',
+        'Can someone help me understand this better?',
+        'I\'m confused about the difference between these two things',
+        'I don\'t get why this isn\'t working as expected',
+        'This is making no sense to me right now'
+      ];
+      
+      let index = 0;
+      currentScenario = setInterval(() => {
+        if (index < confusionMessages.length) {
+          updateContent(confusionMessages[index]);
+          index++;
+        } else {
+          clearInterval(currentScenario);
+          updateContent('Confusion scenario complete. Watch for Claude nudges!');
+        }
+      }, 4000); // Every 4 seconds
+    }
+
+    function runContextSwitchingScenario() {
+      clearContent();
+      updateContent('Starting context switching scenario...');
+      
+      const topics = [
+        'Learning about JavaScript promises and async/await',
+        'Checking CSS Grid documentation for layout help',
+        'Reading about Python list comprehensions',
+        'Looking at React hooks tutorial',
+        'Studying database normalization principles',
+        'Back to JavaScript - trying to understand closures',
+        'Now looking at Vue.js components instead',
+        'Switching to Angular documentation',
+        'Back to CSS - flexbox vs grid confusion',
+        'Now reading about Node.js and Express'
+      ];
+      
+      let index = 0;
+      currentScenario = setInterval(() => {
+        if (index < topics.length) {
+          updateContent(`Context switch ${index + 1}: ${topics[index]}`);
+          index++;
+        } else {
+          clearInterval(currentScenario);
+          updateContent('Context switching scenario complete. Watch for Claude nudges!');
+        }
+      }, 2500); // Every 2.5 seconds - rapid switching
+    }
+
+    function runProlongedFocusScenario() {
+      clearContent();
+      updateContent('Starting prolonged focus scenario...');
+      
+      const prolongedMessages = [
+        'Working on this algorithm problem for a while now...',
+        'Still trying to solve the same sorting algorithm',
+        'Been at this for 10 minutes, still not getting it right',
+        'Same problem, different approach - still not working',
+        'I\'ve been stuck on this exact same issue for too long',
+        'Continuing to work on this sorting algorithm problem',
+        'Still debugging the same piece of code...',
+        'Back to the same problem again - no progress',
+        'I keep coming back to this same issue'
+      ];
+      
+      let index = 0;
+      currentScenario = setInterval(() => {
+        if (index < prolongedMessages.length) {
+          updateContent(prolongedMessages[index]);
+          index++;
+        } else {
+          clearInterval(currentScenario);
+          updateContent('Prolonged focus scenario complete. Watch for Claude nudges!');
+        }
+      }, 5000); // Every 5 seconds - prolonged focus
+    }
+
+    // Auto-start with a mild confusion scenario after 2 seconds
+    setTimeout(() => {
+      updateContent('Auto-starting mild confusion test...');
+      setTimeout(runConfusionScenario, 2000);
+    }, 2000);
+  </script>
+</body>
+</html>

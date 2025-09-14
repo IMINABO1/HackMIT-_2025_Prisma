@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Intervention Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .content-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .simulate-button {
+      background: #007cba;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .simulate-button:hover {
+      background: #005a82;
+    }
+    #content-display {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Intervention Test Page</h1>
+  
+  <div class="content-section">
+    <h2>Testing Rabbit Hole Detection</h2>
+    <p>This page helps test the AI intervention system by simulating behaviors that should trigger rabbit hole detection.</p>
+    
+    <h3>Simulate Different Behaviors:</h3>
+    <button class="simulate-button" onclick="simulateRepetitiveSearch()">Repetitive Searching</button>
+    <button class="simulate-button" onclick="simulateErrorPatterns()">Error Patterns</button>
+    <button class="simulate-button" onclick="simulateConfusion()">Confusion Keywords</button>
+    <button class="simulate-button" onclick="simulateContextSwitching()">Context Switching</button>
+    <button class="simulate-button" onclick="simulateCircularBehavior()">Circular Behavior</button>
+    <button class="simulate-button" onclick="clearContent()">Clear Content</button>
+  </div>
+
+  <div class="content-section">
+    <h3>Current Page Content:</h3>
+    <div id="content-display">Click buttons above to simulate different behaviors...</div>
+  </div>
+
+  <div class="content-section">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Make sure your Athena extension is loaded and active</li>
+      <li>Open the extension sidebar</li>
+      <li>Click the buttons above to simulate different rabbit hole behaviors</li>
+      <li>Wait 10-15 seconds between each behavior simulation</li>
+      <li>Watch for AI intervention notifications in the sidebar</li>
+    </ol>
+  </div>
+
+  <script>
+    let contentDisplay = document.getElementById('content-display');
+    let simulationCount = 0;
+
+    function updateContent(text) {
+      contentDisplay.textContent = text;
+      simulationCount++;
+    }
+
+    function simulateRepetitiveSearch() {
+      const searches = [
+        'searching for javascript array methods',
+        'looking for array methods in javascript', 
+        'find javascript array functions',
+        'search array methods js',
+        'javascript array manipulation methods'
+      ];
+      
+      searches.forEach((search, index) => {
+        setTimeout(() => {
+          updateContent(`Repetitive Search ${index + 1}: ${search}\n\nThis simulates a user repeatedly searching for similar terms, which may indicate they're stuck in a rabbit hole.`);
+        }, index * 3000);
+      });
+    }
+
+    function simulateErrorPatterns() {
+      const errors = [
+        'Error: Cannot read property of undefined',
+        'I\'m getting an error and don\'t know how to fix it',
+        'This problem is really confusing me',
+        'Another error appeared and I\'m stuck',
+        'Help! I keep getting the same error'
+      ];
+      
+      errors.forEach((error, index) => {
+        setTimeout(() => {
+          updateContent(`Error Pattern ${index + 1}: ${error}\n\nThis simulates a user encountering repeated errors, which suggests they may need intervention.`);
+        }, index * 2500);
+      });
+    }
+
+    function simulateConfusion() {
+      const confusionText = [
+        'I\'m really confused about how this works',
+        'I don\'t understand what\'s happening here',
+        'I\'m completely stuck and lost',
+        'Help! I can\'t figure this out',
+        'This doesn\'t make sense to me at all'
+      ];
+      
+      confusionText.forEach((text, index) => {
+        setTimeout(() => {
+          updateContent(`Confusion ${index + 1}: ${text}\n\nThis simulates a user expressing confusion, which should trigger supportive intervention.`);
+        }, index * 2000);
+      });
+    }
+
+    function simulateContextSwitching() {
+      // This would normally involve changing URLs, but we'll simulate with content changes
+      const contexts = [
+        'Learning about React hooks useState',
+        'Checking documentation for CSS Grid',
+        'Reading about Python list comprehensions',
+        'Looking at JavaScript async/await',
+        'Studying database normalization',
+        'Back to React hooks again',
+        'Now looking at Vue.js instead',
+        'Switching to Angular documentation',
+        'Back to CSS Grid tutorials',
+        'Now reading about MongoDB'
+      ];
+      
+      contexts.forEach((context, index) => {
+        setTimeout(() => {
+          updateContent(`Context Switch ${index + 1}: ${context}\n\nThis simulates rapid context switching between topics, indicating lack of focus.`);
+        }, index * 1500);
+      });
+    }
+
+    function simulateCircularBehavior() {
+      const circularContent = [
+        'Understanding array methods in JavaScript',
+        'Learning about map, filter, and reduce functions',
+        'Back to understanding array methods in JavaScript',
+        'Still trying to learn map, filter, and reduce',
+        'Once again looking at array methods in JavaScript',
+        'Returning to map, filter, and reduce functions'
+      ];
+      
+      circularContent.forEach((content, index) => {
+        setTimeout(() => {
+          updateContent(`Circular Behavior ${index + 1}: ${content}\n\nThis simulates a user going in circles, returning to the same content repeatedly.`);
+        }, index * 3000);
+      });
+    }
+
+    function clearContent() {
+      updateContent('Content cleared. Ready for new simulation...');
+    }
+
+    // Initial content
+    updateContent('Ready to test AI intervention system. Click a simulation button above.');
+  </script>
+</body>
+</html>

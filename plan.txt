@@ -1,0 +1,83 @@
+# 📖 Story / Vision
+
+We’re building **AI Study Copilot**, inspired by how students struggle to keep track of learning across different tools and contexts.  
+
+Most AI tools today are **stateless** — every time you ask a question, the AI forgets everything from before. This makes explanations repetitive and impersonal.  
+
+We want a **stateful AI companion** that:  
+- **Remembers your strengths and preferences.** Example: if it knows you’re good at modular arithmetic, it should use that lens to explain greedy algorithms.  
+- **Lives everywhere you work.** The Chrome extension floats on any site (like Symbolab for math), while the website is your central hub for notes, mind maps, and analytics.  
+- **Lets you jot down quick notes** (bullets, not long docs) as you learn.  
+- **Builds a mind map** of concepts you’ve explored, so you can visually connect ideas.  
+- **Keeps continuity**: notes and memory from the extension show up on the website, and vice versa.  
+
+Think of it as **NotebookLM + Symbolab + memory + mind-maps**, but lean and hackathon-ready. No bloated features, just a sharp tool that makes learning easier and more personal.  
+
+We’re using **Anthropic** as the model, **Supabase** for storage (to avoid vendor lock-in), and **Mem0** as the memory layer (so the AI actually remembers and adapts).  
+
+---
+
+# 🛠️ Plan (Build Instructions)
+
+### Core Components
+- **Chrome Extension (MV3, JS, Tailwind, Pyhton if possible):**
+  - Floating panel with 3 tabs: **Ask AI**, **Notes**, **Mind Map**.
+  - Explain selected text or ask freeform.
+  - Save short notes tied to page/topic.
+  - Add nodes/edges to mind map.
+  - “Remember this” → pushes facts/traits into Mem0.
+
+- **Website (Vanilla HTML/JS, Tailwind):**
+  - **Dashboard:** milestones, streaks, counts.
+  - **Notes Page:** list/filter/edit notes.
+  - **Mind Map Page:** SVG-based visual map.
+  - **Chat Page:** interact with AI using memory + notes as context.
+
+- **Backend (Node.js or Python):**
+  - `/api/chat/ask` → query Mem0 (Supabase vector store) → add notes/memory context → call Anthropic → return answer.
+  - `/api/notes/*` and `/api/mindmap/*` → Supabase CRUD.
+  - `/api/memory/*` → Mem0 add/query (namespaced by `user_id`).
+
+- **Supabase (Postgres + pgvector):**
+  - Tables: `notes`, `mindmap_nodes`, `mindmap_edges`.
+  - Mem0 stores embeddings + memory metadata here too.
+
+### Memory Behavior
+- **Stateful, not stateless.**  
+- Use **Mem0** with Supabase pgvector to persist:  
+  - User traits/preferences (e.g., “strength.modular_arithmetic = strong”).  
+  - Facts the user asks AI to “remember.”  
+  - Summaries of past interactions if needed.  
+- On each query, Mem0 returns top-K relevant memories, which are injected into the Anthropic prompt alongside notes and mind map context.
+
+### Prompting Anthropic
+**System Prompt:**  
+“You are Study Copilot. You have access to user memories, notes, and mind-map. Personalize explanations to their strengths, keep them clear and stepwise, and reference memory ids when used.”  
+
+**User Prompt Template:**  
+```
+Context:
+- User: ${user_id}
+- Relevant memory (top 6): ${memory_items}
+- Recent notes (top 5): ${notes}
+- Selected mind map nodes: ${nodes}
+
+Task: ${query_or_selection}
+```
+
+### Milestones
+1. **Extension shell:** floating panel, Tailwind UI.  
+2. **Ask/Notes:** selection → explain, save notes.  
+3. **Memory wiring:** Mem0 add/query → Supabase.  
+4. **Mind Map:** add/edit nodes in extension & view in site.  
+5. **Website chat + dashboard:** end-to-end memory recall demo.  
+
+---
+
+# 🚀 Handoff Notes for the AI that Codes
+- Do **not** use React — plain HTML/JS + Tailwind only.  
+- Store all persistent data in Supabase (Postgres + pgvector).  
+- Use **Mem0** as memory library, namespaced by `user_id`.  
+- Backend handles all Anthropic API calls (never expose key to extension).  
+- Keep code modular: `extension/`, `web/`, `api/`.  
+- Focus on hackathon speed: working demo over polish.  
