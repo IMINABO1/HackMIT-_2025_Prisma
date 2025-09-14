@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat • AI Study Copilot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+  <nav class="bg-gray-800 border-b border-gray-700 mb-8">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-white">AI Study Copilot</h1>
+      <div class="flex space-x-8 text-sm">
+        <a href="index.html" class="text-gray-300 hover:text-blue-400">Dashboard</a>
+        <a href="mindmap.html" class="text-gray-300 hover:text-blue-400">Mind Map</a>
+        <a href="chat.html" class="text-blue-400 font-medium">Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto px-6 flex-1 flex flex-col max-h-screen">
+    <h2 class="text-2xl font-semibold mb-6 text-white">Mind Map Chat</h2>
+
+    <div id="chatBox" class="flex-1 overflow-y-auto bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 space-y-4 max-h-[calc(100vh-300px)]">
+      <!-- Messages will be added here -->
+    </div>
+
+    <form id="chatForm" class="mt-6 flex gap-3">
+      <input 
+        id="chatInput" 
+        class="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+        placeholder="Ask about your mind map..." 
+        required 
+      />
+      <button 
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+      >
+        Send
+      </button>
+    </form>
+  </main>
+
+  <script>
+    // Simple API helper (inline to avoid module issues)
+    async function apiPost(path, body) {
+      try {
+        const res = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
+        return res.json();
+      } catch (err) {
+        console.error('API Error:', err);
+        throw err;
+      }
+    }
+
+    const chatBox = document.getElementById('chatBox');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('chatInput');
+
+    function addMessage(text, from) {
+      const div = document.createElement('div');
+      div.className = `mb-4 ${from === 'user' ? 'text-right' : 'text-left'}`;
+      
+      const messageClass = from === 'user' 
+        ? 'bg-blue-600 text-white ml-12' 
+        : 'bg-gray-700 text-gray-100 border border-gray-600 mr-12';
+      
+      div.innerHTML = `
+        <div class="inline-block px-4 py-3 rounded-lg max-w-xs lg:max-w-md ${messageClass}">
+          ${text}
+        </div>
+      `;
+      
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Add welcome message
+    addMessage('Hi! I\'m Claude, your AI study tutor. I can see your learning map and I\'m here to help you identify specific areas where you\'re struggling and create a targeted plan to improve. What topic are you working on right now, or where do you feel stuck?', 'bot');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      
+      addMessage(text, 'user');
+      input.value = '';
+      
+      // Show typing indicator
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'mb-4 text-left';
+      typingDiv.innerHTML = '<div class="inline-block px-4 py-3 rounded-lg bg-gray-700 text-gray-300">Claude is thinking...</div>';
+      typingDiv.id = 'typing-indicator';
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      try {
+        const res = await apiPost('/api/chat/ask', { query: text, userId: 'demo-user' });
+        
+        // Remove typing indicator
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+        
+        addMessage(res.answer || 'I\'m having trouble processing that right now. Could you try rephrasing your question?', 'bot');
+      } catch (err) {
+        console.error('Chat error:', err);
+        
+        // Remove typing indicator
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+        
+        // Show helpful fallback when API is down
+        addMessage('I\'m having trouble connecting to my AI brain right now. Make sure the backend server is running with your Claude API key, then try again. In the meantime, what specific topic would you like help with?', 'bot');
+      }
+    });
+
+  </script>
+</body>
+</html>

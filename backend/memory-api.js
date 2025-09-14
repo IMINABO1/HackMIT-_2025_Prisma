@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
+const Anthropic = require('@anthropic-ai/sdk');
 
 class MemoryAPI {
   constructor() {
@@ -20,6 +21,11 @@ class MemoryAPI {
     // Initialize OpenAI for embeddings
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || 'your-openai-key'
+    });
+    
+    // Initialize Anthropic for chat
+    this.anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || 'your-anthropic-key'
     });
     
     this.setupMiddleware();
@@ -53,6 +59,11 @@ class MemoryAPI {
     // Batch operations
     this.app.post('/api/memory/batch/add', this.addMemoriesBatch.bind(this));
     this.app.post('/api/memory/context', this.getContextualMemories.bind(this));
+    
+    // Chat endpoints
+    this.app.post('/api/chat/ask', this.handleChatQuery.bind(this));
+    this.app.get('/api/mindmap/all', this.getMindMap.bind(this));
+    this.app.get('/api/metrics', this.getMetrics.bind(this));
   }
 
   // Add a new memory with vector embedding
@@ -431,6 +442,218 @@ class MemoryAPI {
       seen.add(memory.id);
       return true;
     });
+  }
+
+  // Handle chat queries with Claude and memory context
+  async handleChatQuery(req, res) {
+    try {
+      const { query, userId = 'demo-user' } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Query is required' });
+      }
+
+      // Get relevant memories for context
+      let relevantMemories = [];
+      try {
+        const searchResult = await this.searchMemoriesInternal(query, userId, 5);
+        relevantMemories = searchResult || [];
+      } catch (error) {
+        console.log('[Chat] Could not fetch memories, continuing without context');
+      }
+
+      // Get mind map data
+      const mindMapData = this.getMindMapData();
+      
+      // Build context-aware prompt
+      const systemPrompt = `You are an AI Study Tutor. You help students identify specific learning problems and provide targeted guidance.
+
+STUDENT'S MIND MAP: The student is learning these connected topics:
+${mindMapData.nodes.map(n => n.label).join(', ')}
+
+Key connections: ${mindMapData.edges.map(e => `${e.source} → ${e.target}`).join(', ')}
+
+RELEVANT MEMORIES:
+${relevantMemories.length > 0 ? relevantMemories.map(m => `- ${m.content}`).join('\n') : 'No previous context available'}
+
+YOUR APPROACH:
+1. Focus on identifying SPECIFIC problems and weaknesses, not just explaining concepts
+2. Ask follow-up questions to understand exactly where they're struggling
+3. Provide concrete critiques and actionable improvements
+4. Reference their mind map to show connections and suggest learning paths
+5. Be encouraging but direct about areas needing work
+
+Be conversational and supportive, like a real tutor who cares about their progress.`;
+
+      const response = await this.anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: query
+          }
+        ]
+      });
+
+      const answer = response.content[0].text;
+
+      // Store this interaction as a memory
+      try {
+        await this.addMemoryInternal(
+          `User asked: "${query}" - Response context: ${answer.substring(0, 200)}...`,
+          { userId, source: 'chat', topic: this.extractTopicFromQuery(query) }
+        );
+      } catch (error) {
+        console.log('[Chat] Could not store interaction memory');
+      }
+
+      res.json({ success: true, answer });
+
+    } catch (error) {
+      console.error('[Chat] Error handling query:', error);
+      res.status(500).json({ error: 'Failed to process chat query' });
+    }
+  }
+
+  // Get mind map data
+  async getMindMap(req, res) {
+    try {
+      const mindMapData = this.getMindMapData();
+      res.json(mindMapData);
+    } catch (error) {
+      console.error('[MindMap] Error getting mind map:', error);
+      res.status(500).json({ error: 'Failed to get mind map' });
+    }
+  }
+
+  // Get dashboard metrics
+  async getMetrics(req, res) {
+    try {
+      const userId = req.query.userId || 'demo-user';
+      
+      // Get memory count
+      let memoryCount = 0;
+      try {
+        const { count } = await this.supabase
+          .from('memories')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        memoryCount = count || 0;
+      } catch (error) {
+        console.log('[Metrics] Could not fetch memory count');
+      }
+
+      const mindMapData = this.getMindMapData();
+      
+      res.json({
+        milestones: Math.min(Math.floor(memoryCount / 5), 10),
+        streak: Math.min(Math.floor(memoryCount / 2), 15),
+        notesCount: memoryCount,
+        mindNodes: mindMapData.nodes.length,
+        mindEdges: mindMapData.edges.length
+      });
+
+    } catch (error) {
+      console.error('[Metrics] Error getting metrics:', error);
+      res.status(500).json({ error: 'Failed to get metrics' });
+    }
+  }
+
+  // Helper methods for chat functionality
+  getMindMapData() {
+    return {
+      nodes: [
+        { id: 'algebra', label: 'Algebra' },
+        { id: 'geometry', label: 'Geometry' },
+        { id: 'trigonometry', label: 'Trigonometry' },
+        { id: 'calculus', label: 'Calculus' },
+        { id: 'probability', label: 'Probability' },
+        { id: 'statistics', label: 'Statistics' },
+        { id: 'linear_algebra', label: 'Linear Algebra' },
+        { id: 'physics', label: 'Physics' },
+        { id: 'machine_learning', label: 'Machine Learning' }
+      ],
+      edges: [
+        { source: 'algebra', target: 'calculus' },
+        { source: 'geometry', target: 'trigonometry' },
+        { source: 'trigonometry', target: 'calculus' },
+        { source: 'algebra', target: 'linear_algebra' },
+        { source: 'calculus', target: 'physics' },
+        { source: 'probability', target: 'statistics' },
+        { source: 'calculus', target: 'probability' },
+        { source: 'statistics', target: 'machine_learning' },
+        { source: 'linear_algebra', target: 'machine_learning' },
+        { source: 'linear_algebra', target: 'physics' }
+      ]
+    };
+  }
+
+  async searchMemoriesInternal(query, userId, limit = 5) {
+    try {
+      const queryEmbedding = await this.generateEmbedding(query);
+      
+      const { data, error } = await this.supabase.rpc('search_memories', {
+        query_embedding: queryEmbedding,
+        match_user_id: userId,
+        match_threshold: 0.7,
+        match_count: limit
+      });
+
+      if (error) return [];
+      
+      return data.map(item => ({
+        id: item.id,
+        content: item.content,
+        metadata: item.metadata,
+        relevanceScore: item.similarity,
+        timestamp: item.created_at
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async addMemoryInternal(content, metadata) {
+    try {
+      const embedding = await this.generateEmbedding(content);
+      const category = this.categorizeMemory(content);
+      
+      const memoryData = {
+        content: content.trim(),
+        embedding: embedding,
+        metadata: {
+          ...metadata,
+          category: category,
+          timestamp: new Date().toISOString(),
+          source: metadata.source || 'api'
+        },
+        user_id: metadata.userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await this.supabase
+        .from('memories')
+        .insert([memoryData])
+        .select()
+        .single();
+
+      return data;
+    } catch (error) {
+      console.error('Error adding memory internally:', error);
+      return null;
+    }
+  }
+
+  extractTopicFromQuery(query) {
+    const topics = ['algebra', 'calculus', 'probability', 'statistics', 'geometry', 'trigonometry', 'physics', 'linear algebra', 'machine learning'];
+    const q = query.toLowerCase();
+    for (let topic of topics) {
+      if (q.includes(topic)) return topic;
+    }
+    return 'general';
   }
 
   start() {

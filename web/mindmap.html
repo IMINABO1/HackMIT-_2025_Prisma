@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mind Map • AI Study Copilot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <nav class="bg-gray-800 border-b border-gray-700 mb-8">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-white">AI Study Copilot</h1>
+      <div class="flex space-x-8 text-sm">
+        <a href="index.html" class="text-gray-300 hover:text-blue-400">Dashboard</a>
+        <a href="mindmap.html" class="text-blue-400 font-medium">Mind Map</a>
+        <a href="chat.html" class="text-gray-300 hover:text-blue-400">Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto px-6">
+    <h2 class="text-2xl font-semibold mb-6 text-white">Your Mind Map</h2>
+    <svg id="mindmapSvg" class="bg-gray-800 border border-gray-700 shadow-lg rounded w-full h-[600px]"></svg>
+  </main>
+
+  <script>
+    // Enhanced mind map with more topics and realistic learning connections
+    const fallbackData = {
+      nodes: [
+        { id: 'algebra', label: 'Algebra', x: 200, y: 300 },
+        { id: 'geometry', label: 'Geometry', x: 150, y: 200 },
+        { id: 'trigonometry', label: 'Trigonometry', x: 300, y: 150 },
+        { id: 'calculus', label: 'Calculus', x: 400, y: 250 },
+        { id: 'probability', label: 'Probability', x: 500, y: 180 },
+        { id: 'statistics', label: 'Statistics', x: 600, y: 250 },
+        { id: 'linear_algebra', label: 'Linear Algebra', x: 350, y: 400 },
+        { id: 'physics', label: 'Physics', x: 500, y: 380 },
+        { id: 'machine_learning', label: 'Machine Learning', x: 650, y: 350 }
+      ],
+      edges: [
+        { source: 'algebra', target: 'calculus' },
+        { source: 'geometry', target: 'trigonometry' },
+        { source: 'trigonometry', target: 'calculus' },
+        { source: 'algebra', target: 'linear_algebra' },
+        { source: 'calculus', target: 'physics' },
+        { source: 'probability', target: 'statistics' },
+        { source: 'calculus', target: 'probability' },
+        { source: 'statistics', target: 'machine_learning' },
+        { source: 'linear_algebra', target: 'machine_learning' },
+        { source: 'linear_algebra', target: 'physics' }
+      ]
+    };
+
+    const svg = d3.select('#mindmapSvg');
+    const width = 800;
+    const height = 600;
+
+    // Set SVG dimensions
+    svg.attr('width', width).attr('height', height);
+
+    const g = svg.append('g');
+
+    // Create the simulation
+    const simulation = d3.forceSimulation(fallbackData.nodes)
+      .force('link', d3.forceLink(fallbackData.edges).id(d => d.id).distance(150))
+      .force('charge', d3.forceManyBody().strength(-400))
+      .force('center', d3.forceCenter(width / 2, height / 2));
+
+    // Create links
+    const link = g.selectAll('line')
+      .data(fallbackData.edges)
+      .enter().append('line')
+      .attr('stroke', '#64748b')
+      .attr('stroke-width', 2);
+
+    // Create nodes
+    const node = g.selectAll('circle')
+      .data(fallbackData.nodes)
+      .enter().append('circle')
+      .attr('r', 25)
+      .attr('fill', '#3b82f6')
+      .attr('stroke', '#1d4ed8')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .call(d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
+
+    // Create labels
+    const labels = g.selectAll('text.label')
+      .data(fallbackData.nodes)
+      .enter().append('text')
+      .attr('class', 'label')
+      .attr('text-anchor', 'middle')
+      .attr('dy', 5)
+      .attr('fill', 'white')
+      .attr('font-size', '12px')
+      .attr('font-weight', 'bold')
+      .text(d => d.label)
+      .style('pointer-events', 'none');
+
+    // Update positions on each tick
+    simulation.on('tick', () => {
+      link
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+      node
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y);
+
+      labels
+        .attr('x', d => d.x)
+        .attr('y', d => d.y);
+    });
+
+    // Drag functions
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    // Add hover effects
+    node.on('mouseover', function(event, d) {
+      d3.select(this).attr('fill', '#60a5fa');
+    }).on('mouseout', function(event, d) {
+      d3.select(this).attr('fill', '#3b82f6');
+    });
+
+  </script>
+</body>
+</html>

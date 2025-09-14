@@ -11,7 +11,7 @@ class AIAnalyzer {
         errorKeywords: ['error', 'problem', 'issue', 'stuck', 'confused', 'help'],
         progressKeywords: ['solution', 'answer', 'correct', 'success', 'done', 'complete']
       },
-      interventionCooldown: 30000, // 30 seconds between interventions for testing (was 3 minutes)
+      interventionCooldown: 15000, // 15 seconds between interventions for testing (was 3 minutes)
       lastInterventionTime: 0
     };
     this.behaviorPatterns = {

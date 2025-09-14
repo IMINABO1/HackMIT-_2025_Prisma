@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced Sidebar</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Enhanced Sidebar Test</h1>
+    <p>Test the new conversation memory and response placement features.</p>
+
+    <div class="test-section">
+        <h3>🔧 Test Conversation History Storage</h3>
+        <button onclick="testConversationStorage()">Test Storage</button>
+        <div class="results" id="storage-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💬 Test Conversation Context</h3>
+        <button onclick="testConversationContext()">Test Context Building</button>
+        <div class="results" id="context-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎯 Test Follow-up Detection</h3>
+        <button onclick="testFollowupDetection()">Test Detection</button>
+        <div class="results" id="followup-results"></div>
+    </div>
+
+    <script>
+        // Mock chrome.storage.local for testing
+        if (typeof chrome === 'undefined') {
+            window.chrome = {
+                storage: {
+                    local: {
+                        set: (data, callback) => {
+                            localStorage.setItem('test_storage', JSON.stringify(data));
+                            if (callback) callback();
+                        },
+                        get: (keys, callback) => {
+                            const stored = localStorage.getItem('test_storage');
+                            const result = stored ? JSON.parse(stored) : {};
+                            callback(result);
+                        },
+                        remove: (keys, callback) => {
+                            localStorage.removeItem('test_storage');
+                            if (callback) callback();
+                        }
+                    }
+                }
+            };
+        }
+
+        // Test conversation history storage
+        async function testConversationStorage() {
+            const results = document.getElementById('storage-results');
+            results.textContent = 'Testing conversation storage...';
+            
+            try {
+                // Test data
+                const testHistory = [
+                    { question: "What is probability?", response: "Probability is...", timestamp: Date.now() },
+                    { question: "Can you help with dice problems?", response: "Sure! For dice...", timestamp: Date.now() + 1000 }
+                ];
+                
+                // Store data
+                chrome.storage.local.set({ conversationHistory: testHistory }, () => {
+                    // Retrieve data
+                    chrome.storage.local.get(['conversationHistory'], (result) => {
+                        const retrieved = result.conversationHistory || [];
+                        
+                        if (retrieved.length === 2 && retrieved[0].question === "What is probability?") {
+                            results.textContent = '✅ Conversation storage working!\n\nStored and retrieved:\n' + 
+                                JSON.stringify(retrieved, null, 2);
+                            results.parentElement.className = 'test-section success';
+                        } else {
+                            results.textContent = '❌ Storage test failed';
+                            results.parentElement.className = 'test-section error';
+                        }
+                    });
+                });
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+                results.parentElement.className = 'test-section error';
+            }
+        }
+
+        // Test conversation context building
+        function testConversationContext() {
+            const results = document.getElementById('context-results');
+            results.textContent = 'Testing context building...';
+            
+            try {
+                const mockHistory = [
+                    { question: "I'm struggling with probability", response: "Let's break it down step by step...", timestamp: Date.now() - 5000 },
+                    { question: "What about dice problems?", response: "For dice, we count favorable outcomes...", timestamp: Date.now() - 2000 }
+                ];
+                
+                const mockMemories = [
+                    { content: "I struggle with mathematics", metadata: { category: 'weakness' } },
+                    { content: "I am good at step-by-step explanations", metadata: { category: 'strength' } }
+                ];
+                
+                // Simulate the prompt building function
+                function buildEducationalPrompt(question, conversationHistory, memories) {
+                    let prompt = `You are a personalized AI tutor helping a student learn. Focus on education, not just giving answers.
+
+STUDENT CONTEXT:
+${memories.length > 0 ? formatMemoriesForAI(memories) : 'No specific learning profile available yet.'}
+
+RECENT CONVERSATION:
+${conversationHistory.slice(-3).map((exchange, i) => 
+  `${i+1}. Student: "${exchange.question}"\n   Your response: "${exchange.response.substring(0, 50)}..."`
+).join('\n\n')}
+
+CURRENT QUESTION: "${question}"
+
+TEACHING INSTRUCTIONS:
+- Give educational explanations, not just code or formulas
+- If this relates to previous conversation, build on that context
+- For math problems (like probability), show step-by-step reasoning
+- If they're struggling, break concepts into smaller pieces
+- Use encouraging language that builds confidence
+
+Educational Response:`;
+                    return prompt;
+                }
+                
+                function formatMemoriesForAI(memories) {
+                    let formatted = "Student's Learning Profile:\n";
+                    memories.forEach((memory, index) => {
+                        const category = memory.metadata?.category || 'general';
+                        formatted += `• [${category.toUpperCase()}] ${memory.content}\n`;
+                    });
+                    return formatted;
+                }
+                
+                const testQuestion = "How do I calculate probability for rolling two dice?";
+                const prompt = buildEducationalPrompt(testQuestion, mockHistory, mockMemories);
+                
+                results.textContent = '✅ Context building working!\n\nGenerated prompt:\n' + prompt.substring(0, 500) + '...';
+                results.parentElement.className = 'test-section success';
+                
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+                results.parentElement.className = 'test-section error';
+            }
+        }
+
+        // Test follow-up detection
+        function testFollowupDetection() {
+            const results = document.getElementById('followup-results');
+            results.textContent = 'Testing follow-up detection...';
+            
+            try {
+                // Mock current intervention data
+                const mockInterventionData = { level: 2, message: "You seem stuck on probability" };
+                
+                function isFollowUpToIntervention(question) {
+                    return mockInterventionData && 
+                           (question.toLowerCase().includes('help me break down') || 
+                            question.toLowerCase().includes('elaborate on') || 
+                            question.toLowerCase().includes('what patterns') ||
+                            question.toLowerCase().includes('you suggested') ||
+                            question.toLowerCase().includes('you gave me a hint'));
+                }
+                
+                const testCases = [
+                    { question: "What is 2+2?", expected: false },
+                    { question: "You suggested I might be stuck. Can you help me break down this problem?", expected: true },
+                    { question: "You gave me a hint about probability. Can you elaborate on that?", expected: true },
+                    { question: "What patterns are you seeing in my learning?", expected: true },
+                    { question: "How do I solve this math problem?", expected: false }
+                ];
+                
+                let passed = 0;
+                let total = testCases.length;
+                let output = '';
+                
+                testCases.forEach((testCase, index) => {
+                    const result = isFollowUpToIntervention(testCase.question);
+                    const status = result === testCase.expected ? '✅' : '❌';
+                    output += `${status} Test ${index + 1}: ${result === testCase.expected ? 'PASS' : 'FAIL'}\n`;
+                    output += `   Question: "${testCase.question.substring(0, 50)}..."\n`;
+                    output += `   Expected: ${testCase.expected}, Got: ${result}\n\n`;
+                    
+                    if (result === testCase.expected) passed++;
+                });
+                
+                output += `Results: ${passed}/${total} tests passed`;
+                
+                results.textContent = output;
+                results.parentElement.className = passed === total ? 'test-section success' : 'test-section error';
+                
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+                results.parentElement.className = 'test-section error';
+            }
+        }
+    </script>
+</body>
+</html>

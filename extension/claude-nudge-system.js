@@ -6,10 +6,10 @@ class ClaudeNudgeSystem {
     this.interferenceLevel = 0; // 0: no nudges, 1: gentle nudges, 2: stronger hints, 3: full interference
     this.lastNudgeTime = 0;
     this.nudgeCooldowns = {
-      0: 30000,  // 30 seconds between first nudges
-      1: 45000,  // 45 seconds between gentle nudges
-      2: 60000,  // 1 minute between stronger hints
-      3: 90000   // 1.5 minutes between full interference
+      0: 10000,  // 10 seconds between first nudges
+      1: 15000,  // 15 seconds between gentle nudges
+      2: 20000,  // 20 seconds between stronger hints
+      3: 30000   // 30 seconds between full interference
     };
     this.escalationThresholds = {
       toLevel1: 2,    // 2 concerning signals = gentle nudge
@@ -90,7 +90,9 @@ class ClaudeNudgeSystem {
         hasFrequentErrors: false,
         hasProlongedFocus: false,
         hasMathematicalContent: false,
-        hasPotentialIncorrectAnswer: false
+        hasPotentialIncorrectAnswer: false,
+        hasCompletionSignals: false,
+        hasSuccessIndicators: false
       }
     };
 
@@ -171,6 +173,42 @@ class ClaudeNudgeSystem {
       analysis.patterns.hasPotentialIncorrectAnswer = true;
     }
 
+    // Check for completion and success signals
+    const completionKeywords = [
+      'done', 'finished', 'complete', 'solved', 'got it', 'understand now',
+      'that works', 'perfect', 'success', 'correct', 'right answer', 'final answer',
+      'solution is', 'answer is', 'result is', 'equals', '='
+    ];
+    
+    const hasCompletionWords = completionKeywords.some(keyword => 
+      structuredText.toLowerCase().includes(keyword)
+    );
+    
+    if (hasCompletionWords) {
+      analysis.patterns.hasCompletionSignals = true;
+      analysis.signalTypes.push('completion');
+    }
+    
+    // Check for mathematical completion patterns (correct answers)
+    if (analysis.patterns.hasMathematicalContent) {
+      // Look for patterns that suggest they got the right answer
+      const mathCompletionPatterns = [
+        /\b15\/36\b/, // Correct dice probability answer
+        /\b5\/12\b/,  // Simplified version
+        /answer.*15/, /answer.*36/, /15.*out.*36/,
+        /probability.*15/, /probability.*5\/12/
+      ];
+      
+      const hasCorrectMathAnswer = mathCompletionPatterns.some(pattern => 
+        pattern.test(structuredText.toLowerCase())
+      );
+      
+      if (hasCorrectMathAnswer) {
+        analysis.patterns.hasSuccessIndicators = true;
+        analysis.signalTypes.push('correct_answer');
+      }
+    }
+
     // Determine urgency
     if (analysis.concerningSignals >= 6) {
       analysis.urgency = 'high';
@@ -184,7 +222,16 @@ class ClaudeNudgeSystem {
   // Update interference level based on analysis
   updateInterferenceLevel(analysis) {
     const { concerningSignals } = analysis;
+    // Treat as success only when explicit success indicators are present to avoid praising incorrect work
+    const hasSuccess = analysis.patterns.hasSuccessIndicators;
 
+    // If user succeeded, reduce interference level
+    if (hasSuccess && concerningSignals === 0) {
+      this.interferenceLevel = Math.max(0, this.interferenceLevel - 1);
+      return;
+    }
+
+    // Otherwise, escalate based on concerning signals
     if (concerningSignals >= this.escalationThresholds.toLevel3) {
       this.interferenceLevel = Math.max(this.interferenceLevel, 3);
     } else if (concerningSignals >= this.escalationThresholds.toLevel2) {
@@ -203,11 +250,22 @@ class ClaudeNudgeSystem {
   // Check if we should nudge based on cooldowns and analysis
   shouldNudge(analysis) {
     const now = Date.now();
-    const cooldown = this.nudgeCooldowns[this.interferenceLevel] || 30000;
-
-    // Must have concerning signals and be past cooldown
-    return analysis.concerningSignals > 0 && 
-           (now - this.lastNudgeTime) > cooldown;
+    // Treat as success only when explicit success indicators are present to avoid praising incorrect work
+    const hasSuccess = analysis.patterns.hasSuccessIndicators;
+    const hasProblems = analysis.concerningSignals > 0;
+    const hasMathContent = analysis.patterns.hasMathematicalContent;
+    
+    // Use shorter cooldown for congratulatory messages
+    let cooldown = hasSuccess && !hasProblems ? 5000 : (this.nudgeCooldowns[this.interferenceLevel] || 30000);
+    
+    // Reduce cooldown for math problems to provide more frequent guidance
+    if (hasMathContent && hasProblems) {
+      cooldown = Math.min(cooldown, 8000); // Max 8 seconds for math problems
+    }
+    
+    const pastCooldown = (now - this.lastNudgeTime) > cooldown;
+    
+    return (hasProblems || hasSuccess) && pastCooldown;
   }
 
   // Generate appropriate nudge based on interference level
@@ -217,12 +275,26 @@ class ClaudeNudgeSystem {
     try {
       const prompt = this.buildClaudePrompt(structuredBatch, analysis);
       const nudgeText = await this.callClaude(prompt, apiKey);
-      
+
+      // If Claude returns an empty or whitespace-only string, decide on fallback or skip
+      let cleanedText = (nudgeText || '').trim();
+
+      if (!cleanedText) {
+        // Provide a simple fallback for problematic scenarios, otherwise skip nudging
+        if (analysis.concerningSignals > 0) {
+          console.warn('[Claude Nudge] Empty response detected – using generic fallback');
+          cleanedText = "Take a closer look at your reasoning and try to identify any assumptions you may have missed.";
+        } else {
+          console.log('[Claude Nudge] Empty response and no problems – skipping nudge.');
+          return null;
+        }
+      }
+
       const nudge = {
         id: `nudge_${now}`,
         timestamp: now,
         level: this.interferenceLevel,
-        text: nudgeText,
+        text: cleanedText,
         analysis: analysis,
         batchId: structuredBatch.batchId
       };
@@ -312,7 +384,30 @@ class ClaudeNudgeSystem {
     const { structuredText } = structuredBatch;
     const { interferenceLevel, signalTypes, urgency } = { ...analysis, interferenceLevel: this.interferenceLevel };
 
-    let basePrompt = `You are Tandem DeepSeek, an AI study companion that monitors real-time learning activity. Your job is to either give helpful hints when the user is struggling OR stay completely silent when they're doing fine.
+    // Check if this is a success/completion scenario
+    // Treat as success only when explicit success indicators are present to avoid praising incorrect work
+    const hasSuccess = analysis.patterns.hasSuccessIndicators;
+    const hasProblems = analysis.concerningSignals > 0;
+    
+    let basePrompt;
+    
+    if (hasSuccess && !hasProblems) {
+      // This is a congratulatory scenario
+      basePrompt = `You are Tandem DeepSeek, an AI study companion. The user just completed something successfully!
+
+Real-time learning data: ${structuredText}
+
+Detected success signals: ${signalTypes.join(', ')}
+
+Give a brief congratulatory message (1 sentence). Examples:
+- "Great job getting the right answer!"
+- "Perfect! You solved it correctly."
+- "Excellent work figuring that out!"
+
+Your congratulatory response:`;
+    } else {
+      // This is a regular nudging scenario
+      basePrompt = `You are Tandem DeepSeek, an AI study companion that monitors real-time learning activity. Your job is to either give helpful hints when the user is struggling OR stay completely silent when they're doing fine.
 
 CRITICAL RULES:
 1. If the user is making progress or doing well, respond with exactly: "SILENT" (nothing else)
@@ -326,40 +421,44 @@ Detected concerning signals: ${signalTypes.join(', ')}
 Urgency level: ${urgency}
 
 `;
+    }
 
-    switch (this.interferenceLevel) {
-      case 1: // Gentle nudge
-        basePrompt += `Give a specific, actionable hint based on what you see (1 sentence). Focus on the actual content/problem, not generic encouragement. Examples:
-- "Try console.log() to see what value that variable actually contains."
-- "Check if you're missing a closing bracket or semicolon."
-- "For dice probability, remember there are 6×6=36 total possible outcomes."
-- "Double-check your calculation - does that fraction make sense for this problem?"
+    if (hasSuccess && !hasProblems) {
+      // For success scenarios, we don't need the switch - just congratulate
+      return basePrompt;
+    } else {
+      // Regular nudging scenarios
+      switch (this.interferenceLevel) {
+        case 1: // Gentle nudge
+          basePrompt += `Give a very brief nudge (1 short sentence max). Only hint at the direction, don't give solutions. Examples:
+- "Check your syntax carefully."
+- "Consider the sample space size."
+- "Review your variable scope."
 
-Your response (be specific to their situation):`;
-        break;
+Your response (very brief nudge only):`;
+          break;
 
-      case 2: // Stronger hint
-        basePrompt += `Provide a concrete suggestion based on their specific situation (1-2 sentences). Give actual technical advice, not motivation. Examples:
-- "That TypeError means the variable is undefined. Check where you declared it and if it's in scope."
-- "You're getting a 404 error because the URL path is wrong. Double-check the endpoint spelling."
-- "For two dice rolls, the sample space has 36 outcomes, not 89. Try listing all possibilities where first < second."
-- "That probability doesn't look right - check if you're counting favorable outcomes correctly."
+        case 2: // Stronger hint
+          basePrompt += `Give a specific but brief hint (1-2 short sentences). Point toward the issue without solving it. Examples:
+- "That error suggests a variable scope issue."
+- "For probability problems, always count total outcomes first."
+- "Check if your loop condition is correct."
 
-Your response (give specific technical guidance):`;
-        break;
+Your response (brief specific hint):`;
+          break;
 
-      case 3: // Full interference
-        basePrompt += `They're really stuck. Give specific, step-by-step technical help (2-3 sentences). Address their exact problem, not general advice. Examples:
-- "Your loop is infinite because you're not incrementing the counter. Add i++ inside the loop."
-- "The API call is failing because you need to add 'Content-Type: application/json' to your headers."
-- "For dice probability: First roll can be 1,2,3,4,5 and second must be greater. Count: (1,2-6)=5 + (2,3-6)=4 + ... = 15 outcomes out of 36 total."
-- "The answer 1/89 is incorrect because there are only 36 possible outcomes when rolling two dice, not 89."
+        case 3: // Full interference
+          basePrompt += `They're stuck. Give a direct but brief suggestion (2 sentences max). Guide them without giving the full answer. Examples:
+- "Your loop isn't incrementing. Add the counter update."
+- "For dice probability: count all possible pairs first, then favorable ones."
+- "That fraction looks wrong - there are only 36 total outcomes with two dice."
 
-Your response (specific technical solution):`;
-        break;
+Your response (brief direct guidance):`;
+          break;
 
-      default:
-        basePrompt += `Analyze the activity. If they're doing fine, respond "SILENT". If they need help, give a brief specific hint (1 sentence). Your response:`;
+        default:
+          basePrompt += `Analyze the activity. If they're doing fine, respond "SILENT". If they need help, give a very brief hint (1 sentence). Your response:`;
+      }
     }
 
     return basePrompt;

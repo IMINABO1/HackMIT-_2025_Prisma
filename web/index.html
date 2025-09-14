@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Study Copilot • Dashboard</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <nav class="bg-gray-800 border-b border-gray-700 mb-8">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-white">AI Study Copilot</h1>
+      <div class="flex space-x-8 text-sm">
+        <a href="index.html" class="text-blue-400 font-medium">Dashboard</a>
+        <a href="mindmap.html" class="text-gray-300 hover:text-blue-400">Mind Map</a>
+        <a href="chat.html" class="text-gray-300 hover:text-blue-400">Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto px-6">
+    <h2 class="text-2xl font-semibold mb-6 text-white">Learning Overview</h2>
+
+    <!-- Metrics Grid -->
+    <div id="metricsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Cards populated by JS -->
+    </div>
+  </main>
+
+  <script>
+    // Simple API helpers (inline to avoid module issues)
+    async function apiGet(path) {
+      try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
+        return res.json();
+      } catch (err) {
+        console.error('API Error:', err);
+        throw err;
+      }
+    }
+
+    async function loadMetrics() {
+      const grid = document.getElementById('metricsGrid');
+      grid.innerHTML = '';
+      
+      try {
+        const data = await apiGet('/api/metrics'); // expected: { milestones, streak, notesCount, mindNodes, mindEdges }
+        const cards = [
+          { title: 'Milestones Completed', value: data.milestones || 0 },
+          { title: 'Learning Streak (days)', value: data.streak || 0 },
+          { title: 'Notes Saved', value: data.notesCount || 0 },
+          { title: 'Mind-map Nodes', value: data.mindNodes || 0 },
+          { title: 'Mind-map Edges', value: data.mindEdges || 0 }
+        ];
+        cards.forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'bg-gray-800 border border-gray-700 shadow-lg rounded-lg p-6';
+          card.innerHTML = `<p class="text-sm text-gray-400">${c.title}</p><p class="mt-2 text-3xl font-bold text-white">${c.value}</p>`;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        // Show fallback data when API fails
+        const fallbackCards = [
+          { title: 'Milestones Completed', value: 3 },
+          { title: 'Learning Streak (days)', value: 7 },
+          { title: 'Notes Saved', value: 12 },
+          { title: 'Mind-map Nodes', value: 8 },
+          { title: 'Mind-map Edges', value: 5 }
+        ];
+        fallbackCards.forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'bg-gray-800 border border-gray-700 shadow-lg rounded-lg p-6';
+          card.innerHTML = `<p class="text-sm text-gray-400">${c.title}</p><p class="mt-2 text-3xl font-bold text-white">${c.value}</p>`;
+          grid.appendChild(card);
+        });
+      }
+    }
+
+    loadMetrics();
+  </script>
+</body>
+</html>

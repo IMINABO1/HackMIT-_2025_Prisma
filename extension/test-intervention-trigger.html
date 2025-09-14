@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Intervention System</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .math-problem { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 10px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; }
+        .error-text { color: red; font-weight: bold; }
+        .success-text { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧠 AI Intervention Test Page</h1>
+    <p>This page simulates struggling with probability problems to trigger AI interventions.</p>
+
+    <div class="test-section">
+        <h3>📚 Math Problem Context</h3>
+        <div class="math-problem">
+            <h4>Probability Problem: Rolling Two Dice</h4>
+            <p><strong>Question:</strong> What is the probability that the first roll is less than the second roll when rolling two dice?</p>
+            
+            <div id="work-area">
+                <p>Let me think about this...</p>
+                <p class="error-text">Wait, I'm confused. Is it 1/6 * 1/6 = 1/36?</p>
+                <p>No that doesn't seem right...</p>
+                <p class="error-text">Maybe it's 6/36 = 1/6?</p>
+                <p>Hmm, I'm getting different answers each time I try...</p>
+                <p class="error-text">This is frustrating. I keep making the same mistake.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🤖 Manual Intervention Triggers</h3>
+        <button onclick="simulateStruggling()">Simulate Struggling Behavior</button>
+        <button onclick="simulateConfusion()">Simulate Confusion Patterns</button>
+        <button onclick="simulateRepeatedErrors()">Simulate Repeated Errors</button>
+        <button onclick="triggerAIHelp()">🚀 Trigger AI Help Now</button>
+        <div class="results" id="trigger-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Expected AI Intervention</h3>
+        <p>The AI should detect that you're:</p>
+        <ul>
+            <li>Making repeated calculation errors</li>
+            <li>Showing signs of frustration</li>
+            <li>Not making progress on the probability problem</li>
+            <li>Potentially in a "rabbit hole" of confusion</li>
+        </ul>
+        <p><strong>Expected Hint:</strong> Something like "It looks like you're struggling with calculating probability. Try breaking it down step-by-step..."</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Debug Information</h3>
+        <button onclick="checkExtensionStatus()">Check Extension Status</button>
+        <button onclick="viewCaptureData()">View Capture Data</button>
+        <div class="results" id="debug-results"></div>
+    </div>
+
+    <script>
+        let simulationInterval = null;
+
+        function simulateStruggling() {
+            const results = document.getElementById('trigger-results');
+            results.innerHTML = '<div class="success-text">🎭 Simulating struggling behavior...</div>';
+            
+            // Add more "struggling" text to the work area
+            const workArea = document.getElementById('work-area');
+            const strugglingTexts = [
+                '<p class="error-text">I tried 15/36 but that\'s wrong too...</p>',
+                '<p>Let me start over again... for the third time...</p>',
+                '<p class="error-text">Why do I keep getting different answers?</p>',
+                '<p>This should be simple but I\'m completely lost...</p>',
+                '<p class="error-text">Maybe I should just guess 1/2?</p>'
+            ];
+            
+            let index = 0;
+            simulationInterval = setInterval(() => {
+                if (index < strugglingTexts.length) {
+                    workArea.innerHTML += strugglingTexts[index];
+                    index++;
+                } else {
+                    clearInterval(simulationInterval);
+                    results.innerHTML += '<br><div class="success-text">✅ Simulation complete. AI should detect struggling patterns.</div>';
+                }
+            }, 2000);
+        }
+
+        function simulateConfusion() {
+            const results = document.getElementById('trigger-results');
+            results.innerHTML = '<div class="success-text">🤔 Simulating confusion patterns...</div>';
+            
+            const workArea = document.getElementById('work-area');
+            const confusionTexts = [
+                '<p>Wait, what does "first roll less than second roll" even mean?</p>',
+                '<p class="error-text">I don\'t understand the question...</p>',
+                '<p>Is this asking for P(X < Y) where X and Y are dice rolls?</p>',
+                '<p class="error-text">I\'m completely confused about how to approach this...</p>',
+                '<p>Should I be using combinations or permutations?</p>'
+            ];
+            
+            confusionTexts.forEach((text, index) => {
+                setTimeout(() => {
+                    workArea.innerHTML += text;
+                    if (index === confusionTexts.length - 1) {
+                        results.innerHTML += '<br><div class="success-text">✅ Confusion simulation complete.</div>';
+                    }
+                }, index * 1500);
+            });
+        }
+
+        function simulateRepeatedErrors() {
+            const results = document.getElementById('trigger-results');
+            results.innerHTML = '<div class="success-text">🔄 Simulating repeated errors...</div>';
+            
+            const workArea = document.getElementById('work-area');
+            const errorTexts = [
+                '<p class="error-text">Attempt 1: P = 1/6 × 1/6 = 1/36 ❌</p>',
+                '<p class="error-text">Attempt 2: P = 6/36 = 1/6 ❌</p>',
+                '<p class="error-text">Attempt 3: P = 15/36 = 5/12 ❌</p>',
+                '<p class="error-text">Attempt 4: P = 21/36 = 7/12 ❌</p>',
+                '<p>I keep making the same conceptual error...</p>'
+            ];
+            
+            errorTexts.forEach((text, index) => {
+                setTimeout(() => {
+                    workArea.innerHTML += text;
+                    if (index === errorTexts.length - 1) {
+                        results.innerHTML += '<br><div class="success-text">✅ Error pattern simulation complete.</div>';
+                    }
+                }, index * 1000);
+            });
+        }
+
+        function triggerAIHelp() {
+            const results = document.getElementById('trigger-results');
+            results.innerHTML = '<div class="success-text">🚀 Manually triggering AI intervention...</div>';
+            
+            // This would normally be done through the extension
+            // For testing, we'll just show what should happen
+            setTimeout(() => {
+                results.innerHTML += `
+                    <br><div class="success-text">✅ AI intervention request sent!</div>
+                    <p><strong>What should happen:</strong></p>
+                    <ol>
+                        <li>Extension captures your struggling behavior</li>
+                        <li>Background script analyzes the patterns</li>
+                        <li>Claude generates a helpful hint</li>
+                        <li>Orange intervention banner appears with guidance</li>
+                    </ol>
+                    <p><em>Check your extension sidebar for the intervention banner!</em></p>
+                `;
+            }, 1000);
+        }
+
+        function checkExtensionStatus() {
+            const results = document.getElementById('debug-results');
+            results.innerHTML = 'Checking extension status...';
+            
+            // Check if extension is loaded
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                results.innerHTML = `
+                    <div class="success-text">✅ Extension is loaded</div>
+                    <p><strong>Extension ID:</strong> ${chrome.runtime.id}</p>
+                    <p><strong>Next steps:</strong></p>
+                    <ul>
+                        <li>Open the extension sidebar</li>
+                        <li>Check console for capture logs</li>
+                        <li>Click "🤖 Get AI Help Now" button</li>
+                        <li>Look for orange intervention banner</li>
+                    </ul>
+                `;
+            } else {
+                results.innerHTML = `
+                    <div class="error-text">❌ Extension not detected</div>
+                    <p>Make sure the extension is:</p>
+                    <ul>
+                        <li>Properly loaded in Chrome</li>
+                        <li>Has permissions for this page</li>
+                        <li>Content script is running</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function viewCaptureData() {
+            const results = document.getElementById('debug-results');
+            results.innerHTML = 'Requesting capture data...';
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    type: 'GET_CAPTURE_HISTORY'
+                }, (response) => {
+                    if (response && response.success) {
+                        const data = response.data || [];
+                        results.innerHTML = `
+                            <div class="success-text">✅ Capture data retrieved</div>
+                            <p><strong>Total captures:</strong> ${data.length}</p>
+                            <p><strong>Recent captures:</strong></p>
+                            <div style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                                ${data.slice(-5).map(entry => 
+                                    `<div>T${entry.timestamp}: ${entry.diff ? entry.diff.substring(0, 100) + '...' : 'No diff'}</div>`
+                                ).join('')}
+                            </div>
+                        `;
+                    } else {
+                        results.innerHTML = '<div class="error-text">❌ Failed to get capture data</div>';
+                    }
+                });
+            } else {
+                results.innerHTML = '<div class="error-text">❌ Extension not available</div>';
+            }
+        }
+
+        // Auto-trigger some struggling behavior after page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🎭 Auto-triggering struggling simulation for AI intervention testing');
+                simulateStruggling();
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

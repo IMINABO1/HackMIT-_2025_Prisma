@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Integration Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .results { 
+            margin-top: 10px; 
+            padding: 10px; 
+            background: #f8f9fa; 
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        input, textarea { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 5px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Memory System Integration Test</h1>
+        <p>Test your local memory system integration with the extension.</p>
+
+        <!-- Health Check -->
+        <div class="test-section" id="health-section">
+            <h3>🏥 Health Check</h3>
+            <button onclick="testHealth()">Check Memory System</button>
+            <div class="results" id="health-results"></div>
+        </div>
+
+        <!-- Add Memory -->
+        <div class="test-section">
+            <h3>🧠 Add Memory</h3>
+            <input type="text" id="memory-input" placeholder="Enter something to remember (e.g., 'I am good at calculus')">
+            <button onclick="testAddMemory()">Add Memory</button>
+            <div class="results" id="memory-results"></div>
+        </div>
+
+        <!-- Search Memory -->
+        <div class="test-section">
+            <h3>🔍 Search Memory</h3>
+            <input type="text" id="search-input" placeholder="Search for memories (e.g., 'calculus')">
+            <button onclick="testSearchMemory()">Search</button>
+            <div class="results" id="search-results"></div>
+        </div>
+
+        <!-- Add Note -->
+        <div class="test-section">
+            <h3>📝 Add Note</h3>
+            <input type="text" id="note-title" placeholder="Note title">
+            <textarea id="note-content" placeholder="Note content" rows="3"></textarea>
+            <button onclick="testAddNote()">Add Note</button>
+            <div class="results" id="note-results"></div>
+        </div>
+
+        <!-- Contextual Memory -->
+        <div class="test-section">
+            <h3>🎯 Contextual Memory</h3>
+            <p>Get memories relevant to this page and any selected text.</p>
+            <button onclick="testContextualMemory()">Get Context</button>
+            <div class="results" id="context-results"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="test-section">
+            <h3>⚡ Quick Actions</h3>
+            <button onclick="rememberStrength()">Remember: I'm good at JavaScript</button>
+            <button onclick="rememberWeakness()">Remember: I struggle with CSS</button>
+            <button onclick="rememberFact()">Remember: React uses virtual DOM</button>
+            <div class="results" id="quick-results"></div>
+        </div>
+
+        <!-- Mind Map -->
+        <div class="test-section">
+            <h3>🗺️ Mind Map</h3>
+            <input type="text" id="node-label" placeholder="Node label (e.g., 'JavaScript')">
+            <button onclick="testAddNode()">Add Node</button>
+            <button onclick="testGetMindMap()">View Mind Map</button>
+            <div class="results" id="mindmap-results"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import memoryClient from './memory-client.js';
+        
+        // Make memoryClient available globally for the test functions
+        window.memoryClient = memoryClient;
+
+        async function testHealth() {
+            const results = document.getElementById('health-results');
+            results.textContent = 'Checking...';
+            
+            try {
+                const isAvailable = await memoryClient.isAvailable();
+                if (isAvailable) {
+                    results.textContent = '✅ Memory system is healthy and available!';
+                    document.getElementById('health-section').className = 'test-section success';
+                } else {
+                    results.textContent = '❌ Memory system is not available. Make sure the server is running on port 3000.';
+                    document.getElementById('health-section').className = 'test-section error';
+                }
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+                document.getElementById('health-section').className = 'test-section error';
+            }
+        }
+
+        async function testAddMemory() {
+            const input = document.getElementById('memory-input');
+            const results = document.getElementById('memory-results');
+            
+            if (!input.value.trim()) {
+                results.textContent = 'Please enter something to remember.';
+                return;
+            }
+            
+            results.textContent = 'Adding memory...';
+            
+            try {
+                const memory = await memoryClient.addMemory(input.value);
+                results.textContent = `✅ Memory added successfully!\nID: ${memory.id}\nCategory: ${memory.metadata.category}`;
+                input.value = '';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testSearchMemory() {
+            const input = document.getElementById('search-input');
+            const results = document.getElementById('search-results');
+            
+            if (!input.value.trim()) {
+                results.textContent = 'Please enter a search query.';
+                return;
+            }
+            
+            results.textContent = 'Searching...';
+            
+            try {
+                const memories = await memoryClient.searchMemories(input.value);
+                if (memories.length > 0) {
+                    let output = `✅ Found ${memories.length} memories:\n\n`;
+                    memories.forEach((memory, index) => {
+                        output += `${index + 1}. "${memory.content}" (Score: ${memory.relevanceScore.toFixed(2)})\n`;
+                    });
+                    results.textContent = output;
+                } else {
+                    results.textContent = '🔍 No memories found for that query.';
+                }
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testAddNote() {
+            const title = document.getElementById('note-title');
+            const content = document.getElementById('note-content');
+            const results = document.getElementById('note-results');
+            
+            if (!content.value.trim()) {
+                results.textContent = 'Please enter note content.';
+                return;
+            }
+            
+            results.textContent = 'Adding note...';
+            
+            try {
+                const note = await memoryClient.addNote(content.value, { title: title.value });
+                results.textContent = `✅ Note added successfully!\nID: ${note.id}\nTitle: ${note.title || 'Untitled'}`;
+                title.value = '';
+                content.value = '';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testContextualMemory() {
+            const results = document.getElementById('context-results');
+            results.textContent = 'Getting contextual memories...';
+            
+            try {
+                const memories = await memoryClient.getContextualMemories();
+                if (memories.length > 0) {
+                    let output = `✅ Found ${memories.length} contextual memories:\n\n`;
+                    memories.forEach((memory, index) => {
+                        output += `${index + 1}. "${memory.content}" (Score: ${memory.relevanceScore.toFixed(2)})\n`;
+                    });
+                    results.textContent = output;
+                } else {
+                    results.textContent = '🎯 No contextual memories found. Add some memories first!';
+                }
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function rememberStrength() {
+            const results = document.getElementById('quick-results');
+            results.textContent = 'Adding strength...';
+            
+            try {
+                await memoryClient.rememberStrength('JavaScript');
+                results.textContent = '✅ Remembered: I am good at JavaScript';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function rememberWeakness() {
+            const results = document.getElementById('quick-results');
+            results.textContent = 'Adding weakness...';
+            
+            try {
+                await memoryClient.rememberWeakness('CSS');
+                results.textContent = '✅ Remembered: I struggle with CSS';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function rememberFact() {
+            const results = document.getElementById('quick-results');
+            results.textContent = 'Adding fact...';
+            
+            try {
+                await memoryClient.rememberFact('React uses virtual DOM for efficient updates');
+                results.textContent = '✅ Remembered: React uses virtual DOM for efficient updates';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testAddNode() {
+            const input = document.getElementById('node-label');
+            const results = document.getElementById('mindmap-results');
+            
+            if (!input.value.trim()) {
+                results.textContent = 'Please enter a node label.';
+                return;
+            }
+            
+            results.textContent = 'Adding node...';
+            
+            try {
+                const node = await memoryClient.addMindMapNode(input.value);
+                results.textContent = `✅ Node added successfully!\nID: ${node.id}\nLabel: ${node.label}`;
+                input.value = '';
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testGetMindMap() {
+            const results = document.getElementById('mindmap-results');
+            results.textContent = 'Getting mind map...';
+            
+            try {
+                const mindmap = await memoryClient.getMindMap();
+                results.textContent = `✅ Mind map retrieved!\nNodes: ${mindmap.nodes.length}\nEdges: ${mindmap.edges.length}\n\nNodes:\n${mindmap.nodes.map(n => `- ${n.label}`).join('\n')}`;
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Make functions available globally
+        window.testHealth = testHealth;
+        window.testAddMemory = testAddMemory;
+        window.testSearchMemory = testSearchMemory;
+        window.testAddNote = testAddNote;
+        window.testContextualMemory = testContextualMemory;
+        window.rememberStrength = rememberStrength;
+        window.rememberWeakness = rememberWeakness;
+        window.rememberFact = rememberFact;
+        window.testAddNode = testAddNode;
+        window.testGetMindMap = testGetMindMap;
+
+        // Auto-run health check on load
+        window.addEventListener('load', testHealth);
+    </script>
+</body>
+</html>

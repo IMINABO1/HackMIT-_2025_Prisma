@@ -1,0 +1,48 @@
+# API Keys and Environment Variables
+*.env
+.env*
+backend/.env
+extension/config.js
+
+# Node modules
+node_modules/
+backend/node_modules/
+*/node_modules/
+
+# Data files (may contain sensitive information)
+backend/data/
+data/
+*.json
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.backup
+backup_*
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Build outputs
+dist/
+build/

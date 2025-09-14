@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Conversation Context Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .results { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; font-family: monospace; white-space: pre-wrap; }
+        .problem-context { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Conversation Context Fix Test</h1>
+    <p>This page will help debug and fix the conversation context issues.</p>
+
+    <div class="problem-context">
+        <h3>🎯 The Problem</h3>
+        <p>You asked: <strong>"tell me a bit more"</strong></p>
+        <p>AI gave: <strong>Generic verbose response about being a tutor</strong></p>
+        <p>Expected: <strong>Specific help with your probability problem</strong></p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧠 Add Test Memory</h3>
+        <button onclick="addTestMemory()">Add "I struggle with probability" memory</button>
+        <button onclick="addTestStrength()">Add "I'm good at step-by-step" memory</button>
+        <div class="results" id="memory-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💬 Add Test Conversation</h3>
+        <button onclick="addTestConversation()">Add probability conversation history</button>
+        <button onclick="viewConversationHistory()">View current conversation</button>
+        <button onclick="clearConversationHistory()">Clear conversation</button>
+        <div class="results" id="conversation-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎭 Simulate Intervention Context</h3>
+        <button onclick="simulateIntervention()">Simulate AI hint about probability</button>
+        <button onclick="testFollowUpDetection()">Test "tell me more" detection</button>
+        <div class="results" id="intervention-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test Fixed Prompt</h3>
+        <button onclick="testFixedPrompt()">Generate fixed prompt for "tell me more"</button>
+        <div class="results" id="prompt-results"></div>
+    </div>
+
+    <script>
+        // Mock chrome storage for testing
+        if (typeof chrome === 'undefined') {
+            window.chrome = {
+                storage: {
+                    local: {
+                        set: (data, callback) => {
+                            Object.keys(data).forEach(key => {
+                                localStorage.setItem(key, JSON.stringify(data[key]));
+                            });
+                            if (callback) callback();
+                        },
+                        get: (keys, callback) => {
+                            const result = {};
+                            if (Array.isArray(keys)) {
+                                keys.forEach(key => {
+                                    const stored = localStorage.getItem(key);
+                                    result[key] = stored ? JSON.parse(stored) : undefined;
+                                });
+                            } else if (typeof keys === 'string') {
+                                const stored = localStorage.getItem(keys);
+                                result[keys] = stored ? JSON.parse(stored) : undefined;
+                            }
+                            callback(result);
+                        }
+                    }
+                }
+            };
+        }
+
+        async function addTestMemory() {
+            const results = document.getElementById('memory-results');
+            results.textContent = 'Adding test memory...';
+            
+            // Simulate adding memory about struggling with probability
+            const testMemory = {
+                content: "I struggle with probability calculations, especially with dice problems",
+                metadata: { category: 'weakness' }
+            };
+            
+            // Store in localStorage for testing
+            localStorage.setItem('test_memory', JSON.stringify([testMemory]));
+            
+            results.textContent = '✅ Added test memory: "I struggle with probability calculations"';
+        }
+
+        async function addTestStrength() {
+            const results = document.getElementById('memory-results');
+            
+            const existingMemories = JSON.parse(localStorage.getItem('test_memory') || '[]');
+            existingMemories.push({
+                content: "I learn best with step-by-step explanations",
+                metadata: { category: 'strength' }
+            });
+            
+            localStorage.setItem('test_memory', JSON.stringify(existingMemories));
+            results.textContent = '✅ Added strength memory: "I learn best with step-by-step explanations"';
+        }
+
+        async function addTestConversation() {
+            const results = document.getElementById('conversation-results');
+            results.textContent = 'Adding test conversation...';
+            
+            const testConversation = [
+                {
+                    question: "What's the probability that the first die roll is less than the second when rolling two dice?",
+                    response: "Let me help you with this probability problem. We need to count favorable outcomes where the first roll is less than the second roll.",
+                    timestamp: Date.now() - 300000, // 5 minutes ago
+                    isFollowUp: false
+                },
+                {
+                    question: "I'm still confused about how to count the outcomes",
+                    response: "Let's break it down systematically. If the first die shows 1, the second can be 2,3,4,5,6 (5 outcomes). If first shows 2, second can be 3,4,5,6 (4 outcomes)...",
+                    timestamp: Date.now() - 120000, // 2 minutes ago
+                    isFollowUp: false
+                }
+            ];
+            
+            chrome.storage.local.set({ conversationHistory: testConversation }, () => {
+                results.textContent = '✅ Added test conversation about probability dice problem';
+            });
+        }
+
+        async function viewConversationHistory() {
+            const results = document.getElementById('conversation-results');
+            
+            chrome.storage.local.get(['conversationHistory'], (result) => {
+                const history = result.conversationHistory || [];
+                results.textContent = `Current conversation history (${history.length} exchanges):\n\n` +
+                    history.map((exchange, i) => 
+                        `${i+1}. Q: "${exchange.question}"\n   A: "${exchange.response.substring(0, 100)}..."\n`
+                    ).join('\n');
+            });
+        }
+
+        async function clearConversationHistory() {
+            const results = document.getElementById('conversation-results');
+            
+            chrome.storage.local.set({ conversationHistory: [] }, () => {
+                results.textContent = '🔄 Conversation history cleared';
+            });
+        }
+
+        function simulateIntervention() {
+            const results = document.getElementById('intervention-results');
+            
+            // Simulate intervention data
+            const mockIntervention = {
+                message: "It looks like you're struggling with calculating probability. Try breaking it down step-by-step.",
+                level: 2,
+                manualTrigger: false
+            };
+            
+            // Store intervention context
+            window.currentInterventionData = mockIntervention;
+            
+            results.textContent = '✅ Simulated intervention context:\n' +
+                `Message: "${mockIntervention.message}"\n` +
+                `Level: ${mockIntervention.level}\n` +
+                'Now try testing "tell me more" detection.';
+        }
+
+        function testFollowUpDetection() {
+            const results = document.getElementById('intervention-results');
+            
+            // Test the follow-up detection logic
+            function isFollowUpToIntervention(question) {
+                return window.currentInterventionData && 
+                       (question.toLowerCase().includes('tell me more') ||
+                        question.toLowerCase().includes('help me break down') || 
+                        question.toLowerCase().includes('elaborate on') || 
+                        question.toLowerCase().includes('what patterns') ||
+                        question.toLowerCase().includes('you suggested') ||
+                        question.toLowerCase().includes('you gave me a hint'));
+            }
+            
+            const testQuestions = [
+                "tell me more",
+                "tell me a bit more", 
+                "can you help me break down this problem?",
+                "what is 2+2?",
+                "you suggested I was struggling, can you elaborate?"
+            ];
+            
+            let output = 'Follow-up detection test:\n\n';
+            testQuestions.forEach(q => {
+                const isFollowUp = isFollowUpToIntervention(q);
+                output += `"${q}" → ${isFollowUp ? '✅ FOLLOW-UP' : '❌ Regular'}\n`;
+            });
+            
+            results.textContent = output;
+        }
+
+        async function testFixedPrompt() {
+            const results = document.getElementById('prompt-results');
+            results.textContent = 'Generating fixed prompt...';
+            
+            // Get test data
+            const testMemories = JSON.parse(localStorage.getItem('test_memory') || '[]');
+            
+            chrome.storage.local.get(['conversationHistory'], (result) => {
+                const conversationHistory = result.conversationHistory || [];
+                
+                // Simulate the fixed prompt generation
+                const question = "tell me a bit more";
+                const currentInterventionData = window.currentInterventionData;
+                
+                let prompt;
+                
+                if (currentInterventionData) {
+                    prompt = `You are helping a student who just asked for more help after you gave them a hint.
+
+CONTEXT: You previously told them: "${currentInterventionData.message}"
+
+STUDENT'S FOLLOW-UP: "${question}"
+
+RECENT CONVERSATION:
+${conversationHistory.slice(-2).map((exchange, i) => 
+  `${i+1}. Student: "${exchange.question}"\n   You: "${exchange.response.substring(0, 150)}..."`
+).join('\n')}
+
+STUDENT PROFILE:
+${testMemories.map(m => `• [${m.metadata.category.toUpperCase()}] ${m.content}`).join('\n')}
+
+INSTRUCTIONS:
+- This is a direct follow-up to your previous hint
+- Give specific, actionable help related to their original problem
+- If they were struggling with probability/math, show step-by-step calculations
+- Be concise but thorough (2-3 sentences max)
+- Don't repeat generic advice - give concrete next steps
+
+Specific help:`;
+                } else {
+                    prompt = "No intervention context - would use regular prompt";
+                }
+                
+                results.textContent = `✅ Fixed prompt generated:\n\n${prompt}`;
+            });
+        }
+
+        // Auto-setup test data
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🧪 Auto-setting up test data...');
+                addTestMemory();
+                setTimeout(addTestConversation, 500);
+                setTimeout(simulateIntervention, 1000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
